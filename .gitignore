@@ -1,0 +1,9 @@
+data/
+outputs/
+*.h5
+*.hdf5
+__pycache__/
+.pytest_cache/
+.venv/
+.mypy_cache/
+*.log
