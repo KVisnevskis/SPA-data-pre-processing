@@ -21,7 +21,7 @@ Applies to: **per-run pre-processed dataset tables** (one table per run in the f
 ### Euler angles and bending angle
 - `phi`, `theta`, `psi` are the **ZYX Euler-angle** representation of the **relative** tip orientation with respect to the base.
 - Units: **radians**.
-- `phi` (ϕ) is the **bending angle** (major bending axis).
+- `phi` (ϕ) is the **bending angle** (benidng angle along the major bending axis).
 
 ### Displacement convention
 - `dx`, `dy`, `dz` are the **relative tip displacement components with respect to the base**.
@@ -76,8 +76,3 @@ A dataset is considered valid (v1.0) if it contains, at minimum:
 | `dy` | float | m | OptiTrack global | Relative displacement y component (BP_Y − TP_Y). |  |
 | `dz` | float | m | OptiTrack global | Relative displacement z component (BP_Z − TP_Z). |  |
 
-## Validity rules (v1.0)
-- `Time` must be strictly monotonic increasing.
-- Required columns must contain **no missing values**.
-- Quaternion components should be finite; unit-norm deviations should be small (tolerance defined in pipeline config).
-- Units and conventions in this document must match the exported data; changes require a schema version bump.
