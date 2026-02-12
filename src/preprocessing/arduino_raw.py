@@ -18,6 +18,7 @@ class PressureCalibration:
     v_min_ratio: float = 0.10
     v_max_ratio: float = 0.90
     p_max_pa: float = 206_000.0  # 206 kPa
+    #pressure currently exported as ADC counts; conversion to Pa deferred (see Issue #1)
 
 
 def _to_signed16(n: int) -> int:
