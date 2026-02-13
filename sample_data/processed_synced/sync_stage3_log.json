@@ -1,0 +1,36 @@
+{
+  "fixed": {
+    "arduino_input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_arduino\\sample_arduino_fixed_orientation_processed.csv",
+    "optitrack_input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_optitrack\\sample_optitrack_fixed_orientation_processed.csv",
+    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_synced\\sample_synced_fixed_orientation_stage3.csv",
+    "mode": "fixed",
+    "sync_variable": "phi",
+    "phi_transform_used": "abs",
+    "sample_shift_arduino": 957,
+    "lag_samples": 957,
+    "max_cross_correlation": 21087.416135050018,
+    "rows_before_trim": 65179,
+    "rows_after_trim": 62163,
+    "rows_trimmed": 3016
+  },
+  "freehand": {
+    "arduino_input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_arduino\\sample_arduino_freehand_manipulation_processed.csv",
+    "optitrack_input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_optitrack\\sample_optitrack_freehand_manipulation_processed.csv",
+    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_synced\\sample_synced_freehand_manipulation_stage3.csv",
+    "mode": "freehand",
+    "sync_variable": "acc_z",
+    "measured_accel_column": "acc_z",
+    "sample_shift_arduino": 1189,
+    "lag_samples": 1189,
+    "max_cross_correlation": 7793.699605529169,
+    "rotation_direction": "world_to_body",
+    "gravity_vector_world": [
+      0.0,
+      0.0,
+      -9.81
+    ],
+    "rows_before_trim": 66735,
+    "rows_after_trim": 61931,
+    "rows_trimmed": 4804
+  }
+}
