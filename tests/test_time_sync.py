@@ -63,13 +63,50 @@ def test_synchronize_fixed_orientation_on_sample_data():
     synced_df, info = synchronize_fixed_orientation(
         arduino_df,
         optitrack_df,
+        phi_transform="auto",
         return_info=True,
     )
 
     assert len(synced_df) > 0
     assert info["mode"] == "fixed"
+    assert info["phi_transform_used"] in {"invert", "abs"}
     assert isinstance(info["sample_shift_arduino"], int)
     assert synced_df[["pressure", "phi", "acc_x", "acc_y", "acc_z"]].notna().all().all()
+
+
+def test_synchronize_fixed_orientation_auto_vs_none_on_sample_data():
+    repo_root = Path(__file__).resolve().parents[1]
+    arduino_path = _pick_existing(
+        repo_root,
+        ["sample_data/sample_arduino_fixed_orientation.csv"],
+    )
+    optitrack_path = _pick_existing(
+        repo_root,
+        [
+            "sample_data/sample_optitrack_fixed_orientation.csv",
+            "sample_data/sample_optitrack_fixed_orientaion.csv",
+        ],
+    )
+
+    arduino_df = load_arduino_raw_csv(arduino_path)
+    optitrack_df = _load_optitrack_features(optitrack_path)
+
+    _, info_none = synchronize_fixed_orientation(
+        arduino_df,
+        optitrack_df,
+        phi_transform="none",
+        return_info=True,
+    )
+    _, info_auto = synchronize_fixed_orientation(
+        arduino_df,
+        optitrack_df,
+        phi_transform="auto",
+        return_info=True,
+    )
+
+    # For this fixed sample, direct phi correlation lands on an unrealistic periodic peak.
+    assert abs(info_none["sample_shift_arduino"]) > 30_000
+    assert abs(info_auto["sample_shift_arduino"]) < 5_000
 
 
 def test_virtual_accelerometer_shape_and_finite():

@@ -8,6 +8,7 @@ import pandas as pd
 
 SyncMode = Literal["fixed", "freehand"]
 RotationDirection = Literal["world_to_body", "body_to_world"]
+FixedPhiTransform = Literal["none", "invert", "abs", "auto"]
 
 
 def _validate_required_columns(
@@ -219,6 +220,7 @@ def synchronize_fixed_orientation(
     *,
     pressure_col: str = "pressure",
     phi_col: str = "phi",
+    phi_transform: FixedPhiTransform = "auto",
     max_lag: int | None = None,
     return_info: bool = False,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, object]]:
@@ -230,22 +232,50 @@ def synchronize_fixed_orientation(
     _validate_required_columns(optitrack_features_df, [phi_col], label="OptiTrack features")
 
     x = normalize_to_unit_range(_to_float_array(arduino_df, pressure_col))
-    y = normalize_to_unit_range(_to_float_array(optitrack_features_df, phi_col))
+    phi_raw = _to_float_array(optitrack_features_df, phi_col)
 
-    sample_shift, lag, max_corr = estimate_shift_from_signals(x, y, max_lag=max_lag)
+    def _transform_phi(values: np.ndarray, transform: FixedPhiTransform) -> np.ndarray:
+        if transform == "none":
+            return values
+        if transform == "invert":
+            return -values
+        if transform == "abs":
+            return np.abs(values)
+        raise ValueError(f"Unsupported phi_transform: {transform}")
+
+    if phi_transform == "auto":
+        candidates: list[FixedPhiTransform] = ["none", "invert", "abs"]
+    else:
+        candidates = [phi_transform]
+
+    best_transform: FixedPhiTransform = candidates[0]
+    best_shift = 0
+    best_lag = 0
+    best_corr = -np.inf
+
+    for transform in candidates:
+        y = normalize_to_unit_range(_transform_phi(phi_raw, transform))
+        shift, lag, corr = estimate_shift_from_signals(x, y, max_lag=max_lag)
+        if corr > best_corr:
+            best_transform = transform
+            best_shift = shift
+            best_lag = lag
+            best_corr = corr
+
     synced, rows_before, rows_after = _combine_with_shift_and_trim(
         arduino_df,
         optitrack_features_df,
-        sample_shift_arduino=sample_shift,
+        sample_shift_arduino=best_shift,
     )
 
     if return_info:
         info = {
             "mode": "fixed",
             "sync_variable": phi_col,
-            "sample_shift_arduino": sample_shift,
-            "lag_samples": lag,
-            "max_cross_correlation": max_corr,
+            "phi_transform_used": best_transform,
+            "sample_shift_arduino": best_shift,
+            "lag_samples": best_lag,
+            "max_cross_correlation": float(best_corr),
             "rows_before_trim": rows_before,
             "rows_after_trim": rows_after,
             "rows_trimmed": rows_before - rows_after,
@@ -328,6 +358,7 @@ def synchronize_stage3(
     optitrack_features_df: pd.DataFrame,
     *,
     mode: SyncMode,
+    fixed_phi_transform: FixedPhiTransform = "auto",
     max_lag: int | None = None,
     return_info: bool = False,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, object]]:
@@ -338,6 +369,7 @@ def synchronize_stage3(
         return synchronize_fixed_orientation(
             arduino_df,
             optitrack_features_df,
+            phi_transform=fixed_phi_transform,
             max_lag=max_lag,
             return_info=return_info,
         )
@@ -356,6 +388,7 @@ def synchronize_time_streams(
     optitrack_features_df: pd.DataFrame,
     *,
     mode: SyncMode,
+    fixed_phi_transform: FixedPhiTransform = "auto",
     max_lag: int | None = None,
     return_info: bool = False,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, object]]:
@@ -366,6 +399,7 @@ def synchronize_time_streams(
         arduino_df,
         optitrack_features_df,
         mode=mode,
+        fixed_phi_transform=fixed_phi_transform,
         max_lag=max_lag,
         return_info=return_info,
     )
