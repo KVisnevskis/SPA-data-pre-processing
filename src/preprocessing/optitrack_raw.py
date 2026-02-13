@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Sequence
 
+import numpy as np
 import pandas as pd
 
 
@@ -16,6 +17,12 @@ DEFAULT_COLUMNS: list[str] = [
     "BP_X", "BP_Y", "BP_Z",
     "TR_X", "TR_Y", "TR_Z", "TR_W",
     "TP_X", "TP_Y", "TP_Z",
+]
+
+POSE_COLUMNS: list[str] = [c for c in DEFAULT_COLUMNS if c != "Time"]
+QUATERNION_GROUPS: list[tuple[str, str, str, str]] = [
+    ("BR_W", "BR_X", "BR_Y", "BR_Z"),
+    ("TR_W", "TR_X", "TR_Y", "TR_Z"),
 ]
 
 
@@ -58,3 +65,59 @@ def load_optitrack_raw_csv(
         df[c] = pd.to_numeric(df[c], errors="coerce")
 
     return df
+
+
+def repair_optitrack_missing_samples(
+    df: pd.DataFrame,
+    *,
+    pose_columns: Sequence[str] = POSE_COLUMNS,
+    renormalize_quaternions: bool = False,
+    strict: bool = False,
+    copy: bool = True,
+) -> pd.DataFrame:
+    """
+    Stage-1 OptiTrack repair:
+    Forward-fill missing pose samples (zero-order hold) so downstream
+    kinematic computation remains defined at each timestamp.
+
+    If strict=True, raises when missing values remain in pose columns after
+    forward-fill (e.g., a run starts with missing pose).
+    """
+    missing = [c for c in pose_columns if c not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required pose columns: {missing}")
+
+    out = df.copy(deep=True) if copy else df
+    cols = list(pose_columns)
+    out[cols] = out[cols].ffill()
+
+    if renormalize_quaternions:
+        for w_col, x_col, y_col, z_col in QUATERNION_GROUPS:
+            for c in (w_col, x_col, y_col, z_col):
+                if c not in out.columns:
+                    raise ValueError(f"Missing quaternion column: {c}")
+
+            w = pd.to_numeric(out[w_col], errors="coerce").to_numpy(dtype=np.float64)
+            x = pd.to_numeric(out[x_col], errors="coerce").to_numpy(dtype=np.float64)
+            y = pd.to_numeric(out[y_col], errors="coerce").to_numpy(dtype=np.float64)
+            z = pd.to_numeric(out[z_col], errors="coerce").to_numpy(dtype=np.float64)
+
+            norm = np.sqrt(w * w + x * x + y * y + z * z)
+            safe_norm = np.where(norm > 0.0, norm, np.nan)
+
+            out[w_col] = w / safe_norm
+            out[x_col] = x / safe_norm
+            out[y_col] = y / safe_norm
+            out[z_col] = z / safe_norm
+
+    if strict:
+        na_mask = out[cols].isna()
+        if na_mask.to_numpy().any():
+            bad_row = int(np.flatnonzero(na_mask.any(axis=1).to_numpy())[0])
+            bad_cols = na_mask.columns[na_mask.iloc[bad_row]].tolist()
+            raise ValueError(
+                "Pose columns still contain missing values after forward-fill "
+                f"at row {bad_row}: {bad_cols}"
+            )
+
+    return out
