@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Sequence
+from typing import Literal, Sequence, overload
 
 import numpy as np
 import pandas as pd
@@ -67,6 +67,66 @@ def load_optitrack_raw_csv(
     return df
 
 
+def _longest_true_run(mask: np.ndarray) -> tuple[int, int | None, int | None]:
+    best_len = 0
+    best_start: int | None = None
+    best_end: int | None = None
+
+    current_start: int | None = None
+    current_len = 0
+
+    for i, is_true in enumerate(mask):
+        if is_true:
+            if current_start is None:
+                current_start = i
+            current_len += 1
+        else:
+            if current_len > best_len:
+                best_len = current_len
+                best_start = current_start
+                best_end = i - 1
+            current_start = None
+            current_len = 0
+
+    if current_len > best_len:
+        best_len = current_len
+        best_start = current_start
+        best_end = len(mask) - 1
+
+    return best_len, best_start, best_end
+
+
+def _build_ffill_report(
+    *,
+    before_na: pd.DataFrame,
+    after_na: pd.DataFrame,
+) -> dict[str, object]:
+    before_any = before_na.any(axis=1).to_numpy()
+    filled_mask = before_na & (~after_na)
+    filled_any = filled_mask.any(axis=1).to_numpy()
+
+    longest_len, longest_start, longest_end = _longest_true_run(before_any)
+
+    return {
+        "rows_forward_filled_position": np.flatnonzero(filled_any).tolist(),
+        "rows_forward_filled_count": int(filled_any.sum()),
+        "cells_forward_filled_count": int(filled_mask.to_numpy().sum()),
+        "rows_with_missing_pose_before_fill_position": np.flatnonzero(before_any).tolist(),
+        "rows_with_missing_pose_before_fill_count": int(before_any.sum()),
+        "longest_occlusion_stretch_length": int(longest_len),
+        "longest_occlusion_stretch_start_position": (
+            int(longest_start) if longest_start is not None else None
+        ),
+        "longest_occlusion_stretch_end_position": (
+            int(longest_end) if longest_end is not None else None
+        ),
+        "filled_cells_per_column": {
+            col: int(filled_mask[col].sum()) for col in before_na.columns
+        },
+    }
+
+
+@overload
 def repair_optitrack_missing_samples(
     df: pd.DataFrame,
     *,
@@ -74,7 +134,33 @@ def repair_optitrack_missing_samples(
     renormalize_quaternions: bool = False,
     strict: bool = False,
     copy: bool = True,
+    return_report: Literal[False] = False,
 ) -> pd.DataFrame:
+    ...
+
+
+@overload
+def repair_optitrack_missing_samples(
+    df: pd.DataFrame,
+    *,
+    pose_columns: Sequence[str] = POSE_COLUMNS,
+    renormalize_quaternions: bool = False,
+    strict: bool = False,
+    copy: bool = True,
+    return_report: Literal[True],
+) -> tuple[pd.DataFrame, dict[str, object]]:
+    ...
+
+
+def repair_optitrack_missing_samples(
+    df: pd.DataFrame,
+    *,
+    pose_columns: Sequence[str] = POSE_COLUMNS,
+    renormalize_quaternions: bool = False,
+    strict: bool = False,
+    copy: bool = True,
+    return_report: bool = False,
+) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, object]]:
     """
     Stage-1 OptiTrack repair:
     Forward-fill missing pose samples (zero-order hold) so downstream
@@ -89,7 +175,9 @@ def repair_optitrack_missing_samples(
 
     out = df.copy(deep=True) if copy else df
     cols = list(pose_columns)
+    before_na = out[cols].isna().copy(deep=True)
     out[cols] = out[cols].ffill()
+    after_na = out[cols].isna()
 
     if renormalize_quaternions:
         for w_col, x_col, y_col, z_col in QUATERNION_GROUPS:
@@ -119,5 +207,8 @@ def repair_optitrack_missing_samples(
                 "Pose columns still contain missing values after forward-fill "
                 f"at row {bad_row}: {bad_cols}"
             )
+
+    if return_report:
+        return out, _build_ffill_report(before_na=before_na, after_na=after_na)
 
     return out

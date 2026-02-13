@@ -107,7 +107,7 @@ def compute_optitrack_relative_features(
     Stage-2 OptiTrack feature computation.
 
     Computes:
-      q_rel = q_base^{-1} ⊗ q_tip
+      q_rel = q_base^{-1} * q_tip
       phi/theta/psi from q_rel using ZYX equations
       dx/dy/dz using schema convention: BP - TP
 
