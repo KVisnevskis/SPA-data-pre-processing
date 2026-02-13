@@ -11,7 +11,7 @@ if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
 from preprocessing.optitrack_compute_angle import compute_optitrack_relative_features
-from preprocessing.optitrack_raw import load_optitrack_raw_csv
+from preprocessing.optitrack_raw import load_optitrack_raw_csv, repair_optitrack_missing_samples
 
 
 def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
@@ -44,7 +44,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--strict",
         action="store_true",
-        help="Fail on non-finite input rows (default allows NaNs and propagates them).",
+        help=(
+            "Fail if missing/non-finite values remain after Stage-1 repair "
+            "(forward-fill)."
+        ),
+    )
+    parser.add_argument(
+        "--renormalize-quaternions",
+        action="store_true",
+        help="Renormalize base/tip quaternions during Stage-1 repair.",
     )
     parser.add_argument(
         "--dry-run",
@@ -81,14 +89,23 @@ def main() -> int:
 
     for in_path, out_name in jobs:
         raw_df = load_optitrack_raw_csv(in_path)
-        processed_df = compute_optitrack_relative_features(raw_df, strict=args.strict)
+        repaired_df = repair_optitrack_missing_samples(
+            raw_df,
+            renormalize_quaternions=args.renormalize_quaternions,
+            strict=args.strict,
+        )
+        processed_df = compute_optitrack_relative_features(
+            repaired_df,
+            strict=args.strict,
+        )
         out_path = output_dir / out_name
 
         if args.dry_run:
             print(f"[dry-run] {in_path.name} -> {out_path}")
             print(
                 f"[dry-run] rows={len(processed_df)} cols={len(processed_df.columns)} "
-                f"added=phi,theta,psi,dx,dy,dz"
+                "pipeline=ingest->repair(ffill)->angles "
+                "added=phi,theta,psi,dx,dy,dz"
             )
         else:
             processed_df.to_csv(out_path, index=False)
