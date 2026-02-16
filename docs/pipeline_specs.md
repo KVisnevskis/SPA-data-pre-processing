@@ -80,8 +80,13 @@ Additional channels (e.g., Euler angles, positions, quaternions, displacement co
 **Fixed-orientation runs**
 - Uses:
   - `x[n] = pressure[n]` (Arduino)
-  - `y[n] = phi[n]` (OptiTrack)
+  - `y[n] = transform(phi[n])` (OptiTrack), where `transform` can be one of:
+    - `none` (raw phi)
+    - `invert` (-phi)
+    - `abs` (|phi|)
+    - `auto` (select the transform with highest cross-correlation)
 - Applies the lag `k*` as a shift to align streams.
+- Note: this implementation detail must be updated in the thesis text (Chapter 3) so method description and code are consistent.
 
 **Freehand/dynamic runs**
 - Builds a “virtual accelerometer” reference from OptiTrack base orientation by rotating the gravity vector from world into the base frame (exact rotation direction/sign must match your quaternion and IMU conventions).
