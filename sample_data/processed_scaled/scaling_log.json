@@ -1,0 +1,147 @@
+{
+  "input_dir": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_downsample",
+  "output_dir": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_scaled",
+  "scale_columns": [
+    "pressure",
+    "acc_x",
+    "acc_y",
+    "acc_z",
+    "phi"
+  ],
+  "runs": {
+    "fixed": {
+      "input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_downsample\\sample_filtered_downsampled_fixed_orientation.csv",
+      "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_scaled\\sample_scaled_fixed_orientation.csv",
+      "diagnostics": {
+        "rows": 12433,
+        "scaled_columns": [
+          "pressure",
+          "acc_x",
+          "acc_y",
+          "acc_z",
+          "phi"
+        ],
+        "constant_column_policy": "zero",
+        "columns": {
+          "pressure": {
+            "min_before": 3043.467643467642,
+            "max_before": 81312.14896214896,
+            "min_after": -1.0,
+            "max_after": 1.0,
+            "scaler_min": 3043.467643467642,
+            "scaler_max": 81312.14896214896,
+            "scaler_range": 78268.68131868132,
+            "is_constant_scaler_column": false
+          },
+          "acc_x": {
+            "min_before": -0.0751779321289064,
+            "max_before": 0.538216533203125,
+            "min_after": -0.7587148137617287,
+            "max_after": -0.6858686380437873,
+            "scaler_min": -2.1068974609375,
+            "scaler_max": 14.73391701660156,
+            "scaler_range": 16.84081447753906,
+            "is_constant_scaler_column": false
+          },
+          "acc_y": {
+            "min_before": -0.0507570751953124,
+            "max_before": 0.3155557788085938,
+            "min_after": -0.015955012097037757,
+            "max_after": 0.03406787419080626,
+            "scaler_min": -7.256825231933592,
+            "scaler_max": 7.388985163574217,
+            "scaler_range": 14.645810395507809,
+            "is_constant_scaler_column": false
+          },
+          "acc_z": {
+            "min_before": 9.126217888183591,
+            "max_before": 10.738952126464842,
+            "min_after": 0.8211060016507485,
+            "max_after": 0.9799551939629758,
+            "scaler_min": -9.362765012207031,
+            "scaler_max": 10.942459267578124,
+            "scaler_range": 20.305224279785158,
+            "is_constant_scaler_column": false
+          },
+          "phi": {
+            "min_before": -2.8495233868528045,
+            "max_before": 0.0018528611645651,
+            "min_after": -0.9089840699234449,
+            "max_after": 7.648728120202009e-06,
+            "scaler_min": -3.1350272653661118,
+            "scaler_max": 3.138685001775805,
+            "scaler_range": 6.273712267141917,
+            "is_constant_scaler_column": false
+          }
+        }
+      }
+    },
+    "freehand": {
+      "input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_downsample\\sample_filtered_downsampled_freehand_manipulation.csv",
+      "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_scaled\\sample_scaled_freehand_manipulation.csv",
+      "diagnostics": {
+        "rows": 12387,
+        "scaled_columns": [
+          "pressure",
+          "acc_x",
+          "acc_y",
+          "acc_z",
+          "phi"
+        ],
+        "constant_column_policy": "zero",
+        "columns": {
+          "pressure": {
+            "min_before": 3892.368742368742,
+            "max_before": 79740.10989010989,
+            "min_after": -0.9783080260303687,
+            "max_after": 0.9598296778340163,
+            "scaler_min": 3043.467643467642,
+            "scaler_max": 81312.14896214896,
+            "scaler_range": 78268.68131868132,
+            "is_constant_scaler_column": false
+          },
+          "acc_x": {
+            "min_before": -2.1068974609375,
+            "max_before": 14.73391701660156,
+            "min_after": -1.0,
+            "max_after": 1.0,
+            "scaler_min": -2.1068974609375,
+            "scaler_max": 14.73391701660156,
+            "scaler_range": 16.84081447753906,
+            "is_constant_scaler_column": false
+          },
+          "acc_y": {
+            "min_before": -7.256825231933592,
+            "max_before": 7.388985163574217,
+            "min_after": -1.0,
+            "max_after": 1.0,
+            "scaler_min": -7.256825231933592,
+            "scaler_max": 7.388985163574217,
+            "scaler_range": 14.645810395507809,
+            "is_constant_scaler_column": false
+          },
+          "acc_z": {
+            "min_before": -9.362765012207031,
+            "max_before": 10.942459267578124,
+            "min_after": -1.0,
+            "max_after": 1.0,
+            "scaler_min": -9.362765012207031,
+            "scaler_max": 10.942459267578124,
+            "scaler_range": 20.305224279785158,
+            "is_constant_scaler_column": false
+          },
+          "phi": {
+            "min_before": -3.1350272653661118,
+            "max_before": 3.138685001775805,
+            "min_after": -1.0,
+            "max_after": 1.0,
+            "scaler_min": -3.1350272653661118,
+            "scaler_max": 3.138685001775805,
+            "scaler_range": 6.273712267141917,
+            "is_constant_scaler_column": false
+          }
+        }
+      }
+    }
+  }
+}

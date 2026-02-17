@@ -1,0 +1,41 @@
+{
+  "scale_columns": [
+    "pressure",
+    "acc_x",
+    "acc_y",
+    "acc_z",
+    "phi"
+  ],
+  "scaler_parameters": {
+    "pressure": {
+      "min": 3043.467643467642,
+      "max": 81312.14896214896,
+      "range": 78268.68131868132,
+      "is_constant": false
+    },
+    "acc_x": {
+      "min": -2.1068974609375,
+      "max": 14.73391701660156,
+      "range": 16.84081447753906,
+      "is_constant": false
+    },
+    "acc_y": {
+      "min": -7.256825231933592,
+      "max": 7.388985163574217,
+      "range": 14.645810395507809,
+      "is_constant": false
+    },
+    "acc_z": {
+      "min": -9.362765012207031,
+      "max": 10.942459267578124,
+      "range": 20.305224279785158,
+      "is_constant": false
+    },
+    "phi": {
+      "min": -3.1350272653661118,
+      "max": 3.138685001775805,
+      "range": 6.273712267141917,
+      "is_constant": false
+    }
+  }
+}
