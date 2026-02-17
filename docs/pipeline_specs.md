@@ -92,6 +92,21 @@ Additional channels (e.g., Euler angles, positions, quaternions, displacement co
 - Builds a “virtual accelerometer” reference from OptiTrack base orientation by rotating the gravity vector from world into the base frame (exact rotation direction/sign must match your quaternion and IMU conventions).
 - Synchronises measured accelerometer to this virtual accelerometer via cross-correlation, then applies the lag.
 
+**Freehand manual trim (post-sync)**
+- For freehand runs, perform an additional manual trim after synchronization to remove initial/final static periods where the actuator is resting on a surface.
+- Inspect accelerometer channels (`acc_x`, `acc_y`, `acc_z`) on the synchronized run and select trim boundaries:
+  - `trim_start_samples`: number of samples removed from the beginning.
+  - `trim_end_samples`: number of samples removed from the end.
+- Apply this trim after overlap trim and before Stage 4 filtering/downsampling.
+- Store the trim decisions in a run-level trim manifest/log so the process is reproducible.
+- Record per-run diagnostics:
+  - `rows_before_manual_trim`
+  - `trim_start_samples`
+  - `trim_end_samples`
+  - `rows_after_manual_trim`
+  - `rows_trimmed_manual_total`
+  - `first_kept_original_row`, `last_kept_original_row`
+
 **Trim**
 - After shifting, trims the combined data to the time interval where all required channels overlap.
 
