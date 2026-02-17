@@ -8,6 +8,8 @@ Applies to: **per-run pre-processed dataset tables** (one table per run in the f
 ### Time
 - `Time` is in **seconds**, measured from the start of the run **after** synchronisation and downsampling.
 - Final sampling period is **1/48 s** (nominal **48 Hz**).
+- Stage-4 default policy is integer decimation by factor `5` from `240 Hz` with anchor `decimation_offset=0` (kept indices `0, 5, 10, ...`).
+- After Stage-4 decimation, `Time` is rebased to `0, 1/48, 2/48, ...` (unless explicitly disabled in processing parameters).
 
 ### Coordinate frames
 - **OptiTrack global frame**: laboratory/world frame used by the motion-capture system.

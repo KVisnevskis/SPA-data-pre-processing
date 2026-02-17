@@ -106,6 +106,15 @@ Additional channels (e.g., Euler angles, positions, quaternions, displacement co
 - Downsamples from the OptiTrack/merged rate to the desired final rate via decimation (e.g., 240 Hz → 48 Hz by factor 5).
 - Produces the final time base used by the model.
 
+**Implementation conventions (current code)**
+- Moving-average window: `5` samples by default.
+- Filter alignment: `centered` by default (optional `causal` mode).
+- Edge handling: partial windows are averaged (`min_periods=1`), so no rows are dropped by filtering.
+- Decimation policy: keep rows at indices `decimation_offset + n * decimation_factor` (default offset `0`).
+- Default sample-rate conversion: `240 Hz -> 48 Hz` with decimation factor `5`.
+- Time-base policy: after decimation, `Time` is rebased to start at `0` with step `1 / output_sample_rate_hz`.
+- Optional diagnostics metadata includes row counts before/after, dropped rows, decimation settings, and effective sample rates.
+
 **Output**
 - `filtered_downsampled_table`
 
