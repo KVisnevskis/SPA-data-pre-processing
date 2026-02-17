@@ -141,6 +141,13 @@ Additional channels (e.g., Euler angles, positions, quaternions, displacement co
 - Applies a consistent min–max scaling to map each scaled channel into `[-1, 1]`.
 - Stores the scaler parameters (min/max per channel) for reproducibility.
 
+**Implementation conventions (current code)**
+- Fit one scaler across all runs in the same processing split (global min/max per scaled column).
+- Default scaled columns: `pressure`, `acc_x`, `acc_y`, `acc_z`, `phi`.
+- Scaled values overwrite the same column names (no `_scaled` suffix by default).
+- Constant-column policy: if a column has zero global range, output zeros for that column.
+- Persist scaler artifacts as JSON (per-column `min`, `max`, `range`, `is_constant`) plus a run-level scaling log.
+
 **Output**
 - `scaled_table`
 - `scaler_parameters` (saved alongside the dataset)

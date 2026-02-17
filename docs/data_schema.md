@@ -38,6 +38,9 @@ Applies to: **per-run pre-processed dataset tables** (one table per run in the f
   - `acc_x`, `acc_y`, `acc_z`
   - `phi`
 - Other channels are stored for reproducibility/analysis and are not necessarily scaled.
+- Stage-5 scaling uses one global scaler fit across all runs in the processing split.
+- Scaled channels overwrite the same column names by default (no separate `_scaled` columns required).
+- Scaler parameters are saved as sidecar metadata (`min`, `max`, `range`, `is_constant` per scaled column).
 
 ## Required columns (minimum)
 A dataset is considered valid (v1.0) if it contains, at minimum:
