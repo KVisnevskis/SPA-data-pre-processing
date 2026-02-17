@@ -58,22 +58,17 @@ def test_apply_global_min_max_scaler_constant_column_policy_zero():
 
 def test_fit_and_apply_global_min_max_scaling_on_sample_downsample_data():
     repo_root = Path(__file__).resolve().parents[1]
-    input_dir = _pick_existing_dir(
-        repo_root,
-        ["sample_data/processed_downsample", "sample_data/processed_stage4"],
-    )
+    input_dir = _pick_existing_dir(repo_root, ["sample_data/processed_downsample"])
     fixed_path = _pick_existing(
         input_dir,
         [
             "sample_filtered_downsampled_fixed_orientation.csv",
-            "sample_stage4_fixed_orientation.csv",
         ],
     )
     freehand_path = _pick_existing(
         input_dir,
         [
             "sample_filtered_downsampled_freehand_manipulation.csv",
-            "sample_stage4_freehand_manipulation.csv",
         ],
     )
 

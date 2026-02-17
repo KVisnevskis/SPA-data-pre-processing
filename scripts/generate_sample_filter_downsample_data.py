@@ -13,7 +13,7 @@ SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from preprocessing.filter_downsample import filter_and_downsample_stage4
+from preprocessing.filter_downsample import filter_and_downsample
 
 
 def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
@@ -27,7 +27,7 @@ def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         description=(
-            "Generate Stage-4 sample CSVs (moving-average filter + decimation) "
+            "Generate downsampled sample CSVs (moving-average filter + decimation) "
             "from Stage-3 synchronized sample data."
         )
     )
@@ -40,8 +40,8 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=REPO_ROOT / "sample_data" / "processed_stage4",
-        help="Directory where Stage-4 CSVs will be written.",
+        default=REPO_ROOT / "sample_data" / "processed_downsample",
+        help="Directory where downsampled CSVs will be written.",
     )
     parser.add_argument(
         "--input-sample-rate-hz",
@@ -86,8 +86,6 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--log-path",
-        "--stage4-log-path",
-        dest="log_path",
         type=Path,
         default=None,
         help="Optional JSON path for filter/downsample diagnostics.",
@@ -129,10 +127,10 @@ def main() -> int:
     if not args.dry_run:
         output_dir.mkdir(parents=True, exist_ok=True)
 
-    stage4_log: dict[str, object] = {}
+    downsample_log: dict[str, object] = {}
     for run_mode, input_path, output_name in jobs:
         synced_df = pd.read_csv(input_path)
-        stage4_df, info = filter_and_downsample_stage4(
+        downsampled_df, info = filter_and_downsample(
             synced_df,
             input_sample_rate_hz=args.input_sample_rate_hz,
             decimation_factor=args.decimation_factor,
@@ -145,7 +143,7 @@ def main() -> int:
         )
 
         output_path = output_dir / output_name
-        stage4_log[run_mode] = {
+        downsample_log[run_mode] = {
             "input": str(input_path),
             "output": str(output_path),
             "parameters": {
@@ -168,14 +166,14 @@ def main() -> int:
                 f"output_sample_rate_hz={info['output_sample_rate_hz']:.3f}"
             )
         else:
-            stage4_df.to_csv(output_path, index=False)
-            print(f"[ok] wrote {output_path} ({len(stage4_df)} rows)")
+            downsampled_df.to_csv(output_path, index=False)
+            print(f"[ok] wrote {output_path} ({len(downsampled_df)} rows)")
 
     if args.dry_run:
-        print(f"[dry-run] stage4 log -> {log_path}")
+        print(f"[dry-run] downsample log -> {log_path}")
     else:
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        log_path.write_text(json.dumps(stage4_log, indent=2), encoding="utf-8")
+        log_path.write_text(json.dumps(downsample_log, indent=2), encoding="utf-8")
         print(f"[ok] wrote {log_path}")
 
     return 0

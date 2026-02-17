@@ -1,7 +1,7 @@
 {
   "fixed": {
     "input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_synced\\sample_synced_fixed_orientation_stage3.csv",
-    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_stage4\\sample_filtered_downsampled_fixed_orientation.csv",
+    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_downsample\\sample_filtered_downsampled_fixed_orientation.csv",
     "parameters": {
       "input_sample_rate_hz": 240.0,
       "decimation_factor": 5,
@@ -12,7 +12,7 @@
       "rebase_time": true
     },
     "diagnostics": {
-      "stage": "stage4",
+      "stage": "filter_downsample",
       "rows_before": 62163,
       "rows_after": 12433,
       "rows_dropped": 49730,
@@ -70,7 +70,7 @@
   },
   "freehand": {
     "input": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_synced\\sample_synced_freehand_manipulation_stage3.csv",
-    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_stage4\\sample_filtered_downsampled_freehand_manipulation.csv",
+    "output": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_downsample\\sample_filtered_downsampled_freehand_manipulation.csv",
     "parameters": {
       "input_sample_rate_hz": 240.0,
       "decimation_factor": 5,
@@ -81,7 +81,7 @@
       "rebase_time": true
     },
     "diagnostics": {
-      "stage": "stage4",
+      "stage": "filter_downsample",
       "rows_before": 61931,
       "rows_after": 12387,
       "rows_dropped": 49544,

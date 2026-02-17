@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from preprocessing.filter_downsample import filter_and_downsample_stage4
+from preprocessing.filter_downsample import filter_and_downsample
 
 
 def _pick_existing(repo_root: Path, candidates: list[str]) -> Path:
@@ -29,7 +29,7 @@ def test_moving_average_centered_partial_window_policy():
         }
     )
 
-    out = filter_and_downsample_stage4(
+    out = filter_and_downsample(
         df,
         decimation_factor=1,
         moving_average_window=3,
@@ -45,7 +45,7 @@ def test_moving_average_centered_partial_window_policy():
 
 def test_moving_average_causal_policy():
     df = pd.DataFrame({"pressure": [1.0, 2.0, 3.0, 4.0, 5.0], "Time": np.arange(5)})
-    out = filter_and_downsample_stage4(
+    out = filter_and_downsample(
         df,
         decimation_factor=1,
         moving_average_window=3,
@@ -64,7 +64,7 @@ def test_decimation_anchor_policy_with_offset():
         }
     )
 
-    out, info = filter_and_downsample_stage4(
+    out, info = filter_and_downsample(
         df,
         decimation_factor=5,
         decimation_offset=2,
@@ -84,14 +84,14 @@ def test_decimation_anchor_policy_with_offset():
     assert info["decimation_offset"] == 2
 
 
-def test_stage4_rebases_time_column():
+def test_filter_and_downsample_rebases_time_column():
     df = pd.DataFrame(
         {
             "Time": np.linspace(12.0, 12.5, num=6),
             "pressure": np.arange(6, dtype=np.float64),
         }
     )
-    out = filter_and_downsample_stage4(
+    out = filter_and_downsample(
         df,
         input_sample_rate_hz=240.0,
         decimation_factor=3,
@@ -102,7 +102,7 @@ def test_stage4_rebases_time_column():
     assert np.allclose(out["Time"].to_numpy(), [0.0, 1.0 / 80.0], atol=1e-12)
 
 
-def test_filter_and_downsample_stage4_on_sample_stage3_data():
+def test_filter_and_downsample_on_sample_stage3_data():
     repo_root = Path(__file__).resolve().parents[1]
     fixed_path = _pick_existing(
         repo_root,
@@ -117,23 +117,23 @@ def test_filter_and_downsample_stage4_on_sample_stage3_data():
 
     for path in (fixed_path, freehand_path):
         stage3_df = pd.read_csv(path)
-        stage4_df, info = filter_and_downsample_stage4(stage3_df, return_info=True)
+        downsampled_df, info = filter_and_downsample(stage3_df, return_info=True)
 
-        assert len(stage4_df) > 0
-        assert set(stage3_df.columns) == set(stage4_df.columns)
-        assert required_cols.issubset(stage4_df.columns)
+        assert len(downsampled_df) > 0
+        assert set(stage3_df.columns) == set(downsampled_df.columns)
+        assert required_cols.issubset(downsampled_df.columns)
 
         expected_rows = _expected_decimated_len(
             len(stage3_df),
             factor=info["decimation_factor"],
             offset=info["decimation_offset"],
         )
-        assert len(stage4_df) == expected_rows
+        assert len(downsampled_df) == expected_rows
         assert info["rows_after"] == expected_rows
         assert info["rows_before"] == len(stage3_df)
         assert np.isclose(info["output_sample_rate_hz"], 48.0, atol=1e-12)
 
         finite = np.isfinite(
-            stage4_df[["pressure", "acc_x", "acc_y", "acc_z", "phi"]].to_numpy(dtype=np.float64)
+            downsampled_df[["pressure", "acc_x", "acc_y", "acc_z", "phi"]].to_numpy(dtype=np.float64)
         )
         assert finite.all()

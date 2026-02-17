@@ -28,14 +28,7 @@ def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
 
 
 def _resolve_default_input_dir() -> Path:
-    candidates = [
-        REPO_ROOT / "sample_data" / "processed_downsample",
-        REPO_ROOT / "sample_data" / "processed_stage4",
-    ]
-    for path in candidates:
-        if path.exists():
-            return path
-    return candidates[0]
+    return REPO_ROOT / "sample_data" / "processed_downsample"
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -49,7 +42,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--input-dir",
         type=Path,
         default=_resolve_default_input_dir(),
-        help="Directory containing Stage-4/downsampled sample CSVs.",
+        help="Directory containing downsampled sample CSVs.",
     )
     parser.add_argument(
         "--output-dir",
@@ -99,14 +92,12 @@ def main() -> int:
         input_dir,
         [
             "sample_filtered_downsampled_fixed_orientation.csv",
-            "sample_stage4_fixed_orientation.csv",
         ],
     )
     freehand_input = _pick_existing(
         input_dir,
         [
             "sample_filtered_downsampled_freehand_manipulation.csv",
-            "sample_stage4_freehand_manipulation.csv",
         ],
     )
 

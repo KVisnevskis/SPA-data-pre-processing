@@ -149,7 +149,7 @@ def decimate_by_factor(
     return out, kept_indices
 
 
-def filter_and_downsample_stage4(
+def filter_and_downsample(
     synced_df: pd.DataFrame,
     *,
     input_sample_rate_hz: float = 240.0,
@@ -164,7 +164,7 @@ def filter_and_downsample_stage4(
     return_info: bool = False,
 ) -> pd.DataFrame | tuple[pd.DataFrame, dict[str, object]]:
     """
-    Stage-4 preprocessing: moving-average filtering + integer-factor decimation.
+    Moving-average filtering + integer-factor decimation.
 
     Defaults target the standard SPA sample-rate conversion:
     - input rate: 240 Hz
@@ -185,7 +185,7 @@ def filter_and_downsample_stage4(
         name="moving_average_window",
     )
 
-    stage4_df = apply_moving_average_filter(
+    filtered_df = apply_moving_average_filter(
         synced_df,
         window_size=moving_average_window,
         filter_alignment=filter_alignment,
@@ -193,7 +193,7 @@ def filter_and_downsample_stage4(
         excluded_columns=excluded_filter_columns,
     )
     downsampled_df, kept_indices = decimate_by_factor(
-        stage4_df,
+        filtered_df,
         decimation_factor=decimation_factor,
         decimation_offset=decimation_offset,
     )
@@ -213,7 +213,7 @@ def filter_and_downsample_stage4(
         rows_before = int(len(synced_df))
         rows_after = int(len(downsampled_df))
         info = {
-            "stage": "stage4",
+            "stage": "filter_downsample",
             "rows_before": rows_before,
             "rows_after": rows_after,
             "rows_dropped": rows_before - rows_after,
