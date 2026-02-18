@@ -5,6 +5,7 @@ outputs/
 __pycache__/
 .pytest_cache/
 .venv/
+.scripts/
 .mypy_cache/
 *.log
 *.egg-info
