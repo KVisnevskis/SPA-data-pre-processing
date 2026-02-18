@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+import json
 from pathlib import Path
 from typing import Iterable, Sequence
 
@@ -19,6 +20,45 @@ class PressureCalibration:
     v_max_ratio: float = 0.90
     p_max_pa: float = 206_000.0  # 206 kPa
     #pressure currently exported as ADC counts; conversion to Pa deferred (see Issue #1)
+
+
+def _pressure_calibration_from_payload(payload: dict[str, object]) -> PressureCalibration:
+    """
+    Accept either:
+      1) flat schema: {"v_min_ratio": ..., "v_max_ratio": ..., "p_max_pa": ...}
+      2) fit artifact schema with nested "equivalent_ratiometric"
+    """
+    if all(k in payload for k in ("v_min_ratio", "v_max_ratio", "p_max_pa")):
+        source = payload
+    elif "equivalent_ratiometric" in payload and isinstance(payload["equivalent_ratiometric"], dict):
+        source = payload["equivalent_ratiometric"]  # type: ignore[assignment]
+    else:
+        raise ValueError(
+            "Calibration JSON must contain either top-level keys "
+            "v_min_ratio/v_max_ratio/p_max_pa or nested equivalent_ratiometric"
+        )
+
+    try:
+        v_min_ratio = float(source["v_min_ratio"])  # type: ignore[index]
+        v_max_ratio = float(source["v_max_ratio"])  # type: ignore[index]
+        p_max_pa = float(source["p_max_pa"])  # type: ignore[index]
+    except (KeyError, TypeError, ValueError) as exc:
+        raise ValueError("Invalid calibration JSON values; expected numeric v_min_ratio/v_max_ratio/p_max_pa") from exc
+
+    if v_max_ratio <= v_min_ratio:
+        raise ValueError("Invalid calibration JSON: v_max_ratio must be > v_min_ratio")
+    if p_max_pa <= 0.0:
+        raise ValueError("Invalid calibration JSON: p_max_pa must be > 0")
+
+    return PressureCalibration(v_min_ratio=v_min_ratio, v_max_ratio=v_max_ratio, p_max_pa=p_max_pa)
+
+
+def load_pressure_calibration_json(path: str | Path) -> PressureCalibration:
+    with Path(path).open("r", encoding="utf-8") as f:
+        payload = json.load(f)
+    if not isinstance(payload, dict):
+        raise ValueError("Calibration JSON root must be an object")
+    return _pressure_calibration_from_payload(payload)
 
 
 def _to_signed16(n: int) -> int:
@@ -67,9 +107,12 @@ def pressure_adc_to_pa(
     pressure_adc: np.ndarray,
     calib: PressureCalibration = PressureCalibration(),
     adc_max: int = 4095,
+    clip: bool = False,
 ) -> np.ndarray:
     """
     Map 12-bit ADC counts to pressure in Pa using a ratiometric min-max model.
+    By default this does not clip, so values outside the calibrated ADC span
+    are linearly extrapolated.
     """
     ratio = pressure_adc / float(adc_max)
     denom = (calib.v_max_ratio - calib.v_min_ratio)
@@ -77,7 +120,9 @@ def pressure_adc_to_pa(
         raise ValueError("Invalid pressure calibration: v_max_ratio must be > v_min_ratio")
 
     p = ((ratio - calib.v_min_ratio) / denom) * calib.p_max_pa
-    return np.clip(p, 0.0, calib.p_max_pa)
+    if clip:
+        return np.clip(p, 0.0, calib.p_max_pa)
+    return p
 
 
 def load_arduino_raw_csv(
@@ -85,12 +130,15 @@ def load_arduino_raw_csv(
     sample_rate_hz: float = 240.0,
     accel_to_mps2: bool = True,
     pressure_calib: PressureCalibration = PressureCalibration(),
+    pressure_calib_json_path: str | Path | None = None,
 ) -> pd.DataFrame:
     """
     Load an Arduino raw CSV where each line contains 16 integers (bytes).
     Returns a standardized table with a sample index and a time base.
     """
     path = Path(path)
+    if pressure_calib_json_path is not None:
+        pressure_calib = load_pressure_calibration_json(pressure_calib_json_path)
 
     raw = pd.read_csv(path, header=None)
     if raw.shape[1] != 16:

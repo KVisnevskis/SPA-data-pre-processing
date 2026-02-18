@@ -10,7 +10,11 @@ SRC_DIR = REPO_ROOT / "src"
 if str(SRC_DIR) not in sys.path:
     sys.path.insert(0, str(SRC_DIR))
 
-from preprocessing.arduino_raw import PressureCalibration, load_arduino_raw_csv
+from preprocessing.arduino_raw import (
+    PressureCalibration,
+    load_arduino_raw_csv,
+    load_pressure_calibration_json,
+)
 
 
 def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
@@ -70,6 +74,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Pressure calibration full-scale pressure in Pa.",
     )
     parser.add_argument(
+        "--pressure-calibration-json",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON file with v_min_ratio/v_max_ratio/p_max_pa. "
+            "When provided, this overrides --pressure-v-min-ratio/--pressure-v-max-ratio/--pressure-max-pa."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Only print what would be generated without writing CSV files.",
@@ -82,11 +95,14 @@ def main() -> int:
     input_dir: Path = args.input_dir
     output_dir: Path = args.output_dir
 
-    calib = PressureCalibration(
-        v_min_ratio=args.pressure_v_min_ratio,
-        v_max_ratio=args.pressure_v_max_ratio,
-        p_max_pa=args.pressure_max_pa,
-    )
+    if args.pressure_calibration_json is not None:
+        calib = load_pressure_calibration_json(args.pressure_calibration_json)
+    else:
+        calib = PressureCalibration(
+            v_min_ratio=args.pressure_v_min_ratio,
+            v_max_ratio=args.pressure_v_max_ratio,
+            p_max_pa=args.pressure_max_pa,
+        )
 
     fixed_input = _pick_existing(
         input_dir,
