@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 from dataclasses import dataclass
+import json
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
@@ -17,6 +18,7 @@ import pandas as pd
 
 
 MAX_POINTS = 20_000
+MAX_META_ROWS = 500
 
 
 @dataclass
@@ -36,10 +38,16 @@ class HDF5InspectorApp:
         self.status_text = tk.StringVar(value="Load an HDF5 file to begin.")
 
         self.dataset_keys: list[str] = []
+        self.meta_keys: list[str] = []
         self.df_cache: dict[str, pd.DataFrame] = {}
+        self.meta_cache: dict[str, pd.DataFrame] = {}
 
         self.plot_a = PlotSelection(tk.StringVar(), tk.StringVar(), tk.StringVar())
         self.plot_b = PlotSelection(tk.StringVar(), tk.StringVar(), tk.StringVar())
+        self.meta_key_var = tk.StringVar()
+        self.meta_filter_run_id = tk.StringVar()
+        self.meta_status = tk.StringVar(value="No metadata loaded.")
+        self.meta_row_json = tk.StringVar(value="")
 
         self._build_layout()
 
@@ -55,19 +63,61 @@ class HDF5InspectorApp:
         ttk.Button(top, text="Browse", command=self.on_browse).pack(side="left", padx=(0, 6))
         ttk.Button(top, text="Load", command=self.on_load).pack(side="left")
 
-        controls = ttk.Frame(self.root, padding=(8, 4, 8, 4))
-        controls.pack(fill="x")
+        notebook = ttk.Notebook(self.root)
+        notebook.pack(fill="both", expand=True, padx=8, pady=4)
 
+        plot_tab = ttk.Frame(notebook)
+        meta_tab = ttk.Frame(notebook)
+        notebook.add(plot_tab, text="Plots")
+        notebook.add(meta_tab, text="Metadata")
+
+        controls = ttk.Frame(plot_tab, padding=(0, 0, 0, 4))
+        controls.pack(fill="x")
         self._build_plot_controls(controls, "Plot A", self.plot_a, 0)
         self._build_plot_controls(controls, "Plot B", self.plot_b, 1)
 
         self.figure, self.axes = plt.subplots(1, 2, figsize=(12, 5), dpi=100)
         self.figure.tight_layout(pad=2.0)
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self.root)
-        self.canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=4)
+        self.canvas = FigureCanvasTkAgg(self.figure, master=plot_tab)
+        self.canvas.get_tk_widget().pack(fill="both", expand=True, padx=0, pady=0)
+
+        self._build_metadata_tab(meta_tab)
 
         status = ttk.Label(self.root, textvariable=self.status_text, relief="sunken", anchor="w")
         status.pack(fill="x", padx=8, pady=(0, 8))
+
+    def _build_metadata_tab(self, parent: ttk.Frame) -> None:
+        top = ttk.Frame(parent, padding=(0, 0, 0, 4))
+        top.pack(fill="x")
+
+        ttk.Label(top, text="Meta table").pack(side="left")
+        self.meta_combo = ttk.Combobox(top, textvariable=self.meta_key_var, state="readonly", width=45)
+        self.meta_combo.pack(side="left", padx=(6, 10))
+        self.meta_combo.bind("<<ComboboxSelected>>", lambda _evt: self.refresh_metadata_view())
+
+        ttk.Label(top, text="run_id filter").pack(side="left")
+        self.meta_filter_entry = ttk.Entry(top, textvariable=self.meta_filter_run_id, width=28)
+        self.meta_filter_entry.pack(side="left", padx=(6, 6))
+        self.meta_filter_entry.bind("<Return>", lambda _evt: self.refresh_metadata_view())
+        ttk.Button(top, text="Apply", command=self.refresh_metadata_view).pack(side="left", padx=(0, 6))
+        ttk.Button(top, text="Clear", command=self.clear_meta_filter).pack(side="left")
+
+        self.meta_tree = ttk.Treeview(parent, show="headings")
+        yscroll = ttk.Scrollbar(parent, orient="vertical", command=self.meta_tree.yview)
+        xscroll = ttk.Scrollbar(parent, orient="horizontal", command=self.meta_tree.xview)
+        self.meta_tree.configure(yscrollcommand=yscroll.set, xscrollcommand=xscroll.set)
+
+        self.meta_tree.pack(fill="both", expand=True, side="top")
+        yscroll.pack(fill="y", side="right")
+        xscroll.pack(fill="x", side="bottom")
+        self.meta_tree.bind("<<TreeviewSelect>>", lambda _evt: self.on_meta_row_selected())
+
+        meta_status_lbl = ttk.Label(parent, textvariable=self.meta_status, anchor="w")
+        meta_status_lbl.pack(fill="x", pady=(4, 2))
+
+        ttk.Label(parent, text="Selected row (JSON)").pack(anchor="w")
+        self.meta_json_text = tk.Text(parent, height=8, wrap="none")
+        self.meta_json_text.pack(fill="x", pady=(2, 0))
 
     def _build_plot_controls(
         self,
@@ -127,8 +177,11 @@ class HDF5InspectorApp:
             return
 
         run_keys = [k for k in keys if k.startswith("/runs/")]
+        meta_keys = [k for k in keys if k.startswith("/meta/")]
         self.dataset_keys = run_keys if run_keys else keys
+        self.meta_keys = meta_keys
         self.df_cache.clear()
+        self.meta_cache.clear()
 
         if not self.dataset_keys:
             messagebox.showwarning("No datasets", "No datasets found in the selected HDF5 file.")
@@ -139,6 +192,7 @@ class HDF5InspectorApp:
         self._set_dataset_options(self.plot_b, self.dataset_keys)
         self._init_plot_selection(self.plot_a)
         self._init_plot_selection(self.plot_b, prefer_second=True)
+        self._init_metadata_selection()
         self.redraw()
 
         self.status_text.set(
@@ -163,6 +217,20 @@ class HDF5InspectorApp:
         else:
             selection.dataset_key.set(self.dataset_keys[0])
         self.on_dataset_selected(selection)
+
+    def _init_metadata_selection(self) -> None:
+        self.meta_combo["values"] = self.meta_keys
+        if self.meta_keys:
+            self.meta_key_var.set(self.meta_keys[0])
+            self.refresh_metadata_view()
+        else:
+            self.meta_key_var.set("")
+            self._clear_tree()
+            self.meta_status.set("No /meta/* tables in this HDF5.")
+
+    def clear_meta_filter(self) -> None:
+        self.meta_filter_run_id.set("")
+        self.refresh_metadata_view()
 
     def on_dataset_selected(self, selection: PlotSelection) -> None:
         key = selection.dataset_key.get().strip()
@@ -208,6 +276,87 @@ class HDF5InspectorApp:
                 )
             self.df_cache[key] = loaded_df
         return self.df_cache[key]
+
+    def _load_meta_dataframe(self, key: str) -> pd.DataFrame:
+        if key not in self.meta_cache:
+            path = Path(self.hdf_path.get().strip())
+            with pd.HDFStore(path, mode="r") as store:
+                loaded = store[key]
+            if isinstance(loaded, pd.Series):
+                col_name = str(loaded.name) if loaded.name is not None else "value"
+                loaded_df = loaded.to_frame(name=col_name)
+            elif isinstance(loaded, pd.DataFrame):
+                loaded_df = loaded
+            else:
+                raise TypeError(
+                    f"Unsupported metadata dataset type for key '{key}': {type(loaded).__name__}"
+                )
+            self.meta_cache[key] = loaded_df
+        return self.meta_cache[key]
+
+    def refresh_metadata_view(self) -> None:
+        key = self.meta_key_var.get().strip()
+        if not key:
+            self._clear_tree()
+            return
+        try:
+            df = self._load_meta_dataframe(key).copy()
+        except Exception as exc:
+            messagebox.showerror("Metadata load failed", f"Failed to load {key}:\n\n{exc}")
+            return
+
+        run_filter = self.meta_filter_run_id.get().strip()
+        if run_filter and "run_id" in df.columns:
+            df = df[df["run_id"].astype(str) == run_filter]
+
+        shown = df.head(MAX_META_ROWS).copy()
+        shown = shown.reset_index(drop=True)
+        self._render_tree(shown)
+
+        self.meta_status.set(
+            f"{key}: showing {len(shown)} rows"
+            f"{' (filtered)' if run_filter else ''}"
+            + (f" of {len(df)}" if len(df) > MAX_META_ROWS else "")
+        )
+        self.meta_json_text.delete("1.0", tk.END)
+        self.meta_json_text.insert(tk.END, "")
+
+    def _clear_tree(self) -> None:
+        self.meta_tree.delete(*self.meta_tree.get_children())
+        self.meta_tree["columns"] = ()
+
+    def _render_tree(self, df: pd.DataFrame) -> None:
+        self._clear_tree()
+        columns = list(df.columns)
+        self.meta_tree["columns"] = columns
+        for col in columns:
+            self.meta_tree.heading(col, text=col)
+            self.meta_tree.column(col, width=160, stretch=True, anchor="w")
+
+        for i, row in df.iterrows():
+            values = [self._stringify_cell(row[c]) for c in columns]
+            self.meta_tree.insert("", "end", iid=str(i), values=values)
+
+    def _stringify_cell(self, v: object) -> str:
+        if v is None:
+            return ""
+        if isinstance(v, float):
+            return f"{v:.6g}"
+        s = str(v)
+        return s if len(s) <= 140 else s[:137] + "..."
+
+    def on_meta_row_selected(self) -> None:
+        selected = self.meta_tree.selection()
+        if not selected:
+            return
+        item_id = selected[0]
+        values = self.meta_tree.item(item_id, "values")
+        columns = self.meta_tree["columns"]
+        row = {str(col): values[i] for i, col in enumerate(columns)}
+
+        pretty = json.dumps(row, indent=2)
+        self.meta_json_text.delete("1.0", tk.END)
+        self.meta_json_text.insert(tk.END, pretty)
 
     def redraw(self) -> None:
         self._draw_single_plot(self.axes[0], self.plot_a, "Plot A")
