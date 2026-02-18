@@ -67,6 +67,23 @@ What it does:
 Output:
 - `optitrack_features_table`
 
+### Stage 2.5 - Exclude restricted-motion periods (optional)
+
+What it does:
+- Apply per-run trim bounds to Arduino and/or OptiTrack pre-sync tables.
+- Intended for excluding initial/final segments where motion is constrained
+  (for example, contact with the table before freehand manipulation starts).
+- Bounds are loaded from `decisions.restricted_motion_trim_config_path` when
+  `decisions.exclude_restricted_motion_periods = true`.
+
+Recorded diagnostics:
+- Whether restricted-motion exclusion was applied for the run.
+- Applied trim bounds and rows removed per stream.
+
+Output:
+- Trimmed Arduino Stage-0 table.
+- Trimmed OptiTrack Stage-2 feature table.
+
 ### Stage 3 - Synchronize and overlap-trim
 
 What it does:
@@ -123,7 +140,7 @@ What it does:
 
 Exported table contents:
 - `/meta/runs`: run identity, resolved HDF5 key, input CSV paths, sync mode, final row count.
-- `/meta/run_logs`: sync shift, lag, correlation, forward-fill counts, stage-4 row counts, and JSON blobs (`sync_info_json`, `repair_report_json`, `downsample_info_json`).
+- `/meta/run_logs`: sync shift, lag, correlation, forward-fill counts, stage-4 row counts, and JSON blobs (`restricted_motion_trim_json`, `sync_info_json`, `repair_report_json`, `downsample_info_json`).
 - `/meta/run_scaling`: per-run `scaling_info_json`.
 - `/meta/scaler_parameters`: global scaler fit parameters.
 - `/meta/calibration`: pressure/gyro calibration path and payload JSON snapshots.

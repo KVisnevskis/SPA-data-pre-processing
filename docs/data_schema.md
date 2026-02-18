@@ -52,6 +52,7 @@ Minimum required columns for each run table:
 - `longest_occlusion_stretch_length`
 - `rows_after_sync_trim`
 - `rows_after_downsample`
+- `restricted_motion_trim_json`
 - `sync_info_json`
 - `repair_report_json`
 - `downsample_info_json`
