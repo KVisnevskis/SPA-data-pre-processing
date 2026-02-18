@@ -21,6 +21,11 @@ from preprocessing.optitrack_raw import (
     load_optitrack_raw_csv,
     repair_optitrack_missing_samples,
 )
+from preprocessing.restricted_motion_trim import (
+    RunTrimConfig,
+    apply_restricted_motion_trim_for_run,
+    load_restricted_motion_trim_config,
+)
 from preprocessing.time_sync import (
     FixedPhiTransform,
     RotationDirection,
@@ -335,6 +340,7 @@ def export_dataset_hdf5_from_manifest(
     run_plan = build_run_plan(manifest, include_run_ids=include_run_ids)
     if not run_plan:
         raise ValueError("No runs selected for export")
+    dataset_root = _resolve_dataset_root(manifest)
 
     defaults: Mapping[str, Any] = manifest.get("default_settings", {}) if isinstance(manifest, dict) else {}
     decisions: Mapping[str, Any] = manifest.get("decisions", {}) if isinstance(manifest, dict) else {}
@@ -342,6 +348,26 @@ def export_dataset_hdf5_from_manifest(
         raise ValueError(
             "This exporter currently supports only scaling_scope='all_trials'"
         )
+    exclude_restricted_motion_periods = _parse_bool(
+        decisions.get("exclude_restricted_motion_periods"),
+        default=False,
+    )
+    trim_config_by_run: dict[str, RunTrimConfig] | None = None
+    if exclude_restricted_motion_periods:
+        trim_cfg_value = decisions.get("restricted_motion_trim_config_path")
+        if trim_cfg_value in (None, ""):
+            raise ValueError(
+                "decisions.restricted_motion_trim_config_path must be set when "
+                "decisions.exclude_restricted_motion_periods=true"
+            )
+        trim_config_path = _resolve_path(
+            dataset_root,
+            _to_str(
+                trim_cfg_value,
+                field_name="decisions.restricted_motion_trim_config_path",
+            ),
+        )
+        trim_config_by_run = load_restricted_motion_trim_config(trim_config_path)
 
     sample_rate_hz_arduino = _coerce_float(
         defaults.get("sample_rate_hz_arduino", 240.0), field_name="default_settings.sample_rate_hz_arduino"
@@ -374,12 +400,12 @@ def export_dataset_hdf5_from_manifest(
     )
 
     pressure_calib_path = (
-        _resolve_path(_resolve_dataset_root(manifest), _to_str(calibration_defaults["pressure"], field_name="default_settings.calibration_paths.pressure"))
+        _resolve_path(dataset_root, _to_str(calibration_defaults["pressure"], field_name="default_settings.calibration_paths.pressure"))
         if "pressure" in calibration_defaults
         else None
     )
     gyro_calib_path = (
-        _resolve_path(_resolve_dataset_root(manifest), _to_str(calibration_defaults["gyro"], field_name="default_settings.calibration_paths.gyro"))
+        _resolve_path(dataset_root, _to_str(calibration_defaults["gyro"], field_name="default_settings.calibration_paths.gyro"))
         if "gyro" in calibration_defaults
         else None
     )
@@ -410,6 +436,24 @@ def export_dataset_hdf5_from_manifest(
             opt_repaired_df,
             strict=False,
         )
+        trim_info: dict[str, object] = {
+            "applied": False,
+            "reason": "feature_disabled",
+            "run_id": plan.run_id,
+        }
+        if exclude_restricted_motion_periods:
+            trimmed = apply_restricted_motion_trim_for_run(
+                run_id=plan.run_id,
+                arduino_df=arduino_df,
+                optitrack_df=opt_features_df,
+                trim_config_by_run=trim_config_by_run,
+                return_info=True,
+            )
+            if not isinstance(trimmed, tuple) or len(trimmed) != 3:
+                raise RuntimeError(
+                    "Expected apply_restricted_motion_trim_for_run(..., return_info=True) to return a 3-tuple"
+                )
+            arduino_df, opt_features_df, trim_info = trimmed
 
         if plan.sync_mode == "fixed":
             sync_result = synchronize_fixed_orientation(
@@ -512,6 +556,7 @@ def export_dataset_hdf5_from_manifest(
                     stage4_info.get("rows_after"),
                     field_name=f"{plan.run_id}.stage4_info.rows_after",
                 ),
+                "restricted_motion_trim_json": _json_dumps(trim_info),
                 "sync_info_json": _json_dumps(sync_info),
                 "repair_report_json": _json_dumps(repair_report),
                 "downsample_info_json": _json_dumps(stage4_info),
