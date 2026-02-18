@@ -1,0 +1,754 @@
+{
+  "schema_version": "v1",
+  "description": "Populate trim bounds to exclude periods of restricted motion before Stage-3 synchronization.",
+  "semantics": {
+    "trim_up_to": "Zero-based index of the first sample to keep. Rows before this index are dropped.",
+    "trim_after": "Zero-based index of the last sample to keep. Rows after this index are dropped."
+  },
+  "runs": [
+    {
+      "run_id": "0roll_0pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_0pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_135pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_135pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_180pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_180pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_45pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_45pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_90pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "0roll_90pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_0pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_0pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_135pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_135pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_180pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_180pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_45pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_45pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_90pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "135roll_90pitch_tt_3",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_0pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_0pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_135pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_135pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_180pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_180pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_45pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_45pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_90pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "180roll_90pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_0pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_0pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_135pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_135pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_180pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_180pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_45pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_45pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_90pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_90pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "45roll_90pitch_tt_3",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "90roll_0pitch_tt_1",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "90roll_0pitch_tt_2",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "90roll_0pitch_tt_3",
+      "arduino": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_sin_1",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 13400
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_sin_2",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 14100
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_sin_3",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 13400
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_03V_1",
+      "arduino": {
+        "trim_up_to": 550,
+        "trim_after": 13200
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_03V_2",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 13700
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_03V_3",
+      "arduino": {
+        "trim_up_to": 700,
+        "trim_after": 13100
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_06V_3",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 13300
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_06V_4",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 12900
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_06V_5",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": 12800
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_09V_1",
+      "arduino": {
+        "trim_up_to": 550,
+        "trim_after": 13100
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_09V_2",
+      "arduino": {
+        "trim_up_to": 400,
+        "trim_after": 13000
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_09V_3",
+      "arduino": {
+        "trim_up_to": 600,
+        "trim_after": 12650
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_12V_1",
+      "arduino": {
+        "trim_up_to": 550,
+        "trim_after": 12950
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_12V_2",
+      "arduino": {
+        "trim_up_to": 600,
+        "trim_after": 12850
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_static_12V_3",
+      "arduino": {
+        "trim_up_to": 950,
+        "trim_after": 13300
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_tt_1",
+      "arduino": {
+        "trim_up_to": 400,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_tt_2",
+      "arduino": {
+        "trim_up_to": 700,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    },
+    {
+      "run_id": "Freehand_tt_3",
+      "arduino": {
+        "trim_up_to": 500,
+        "trim_after": null
+      },
+      "optitrack": {
+        "trim_up_to": null,
+        "trim_after": null
+      },
+      "notes": ""
+    }
+  ]
+}
