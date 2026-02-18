@@ -12,7 +12,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt
 from matplotlib.axes import Axes
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 import numpy as np
 import pandas as pd
 
@@ -123,6 +123,12 @@ class RawInspectorApp:
         self.figure, self.axes = plt.subplots(1, 2, figsize=(12, 5), dpi=100)
         self.figure.tight_layout(pad=2.0)
         self.canvas = FigureCanvasTkAgg(self.figure, master=self.root)
+
+        toolbar_frame = ttk.Frame(self.root)
+        toolbar_frame.pack(fill="x", padx=8, pady=(0, 4))
+        self.toolbar = NavigationToolbar2Tk(self.canvas, toolbar_frame)
+        self.toolbar.update()
+
         self.canvas.get_tk_widget().pack(fill="both", expand=True, padx=8, pady=4)
 
         status = ttk.Label(self.root, textvariable=self.status_var, relief="sunken", anchor="w")
