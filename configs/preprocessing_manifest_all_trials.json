@@ -3,7 +3,8 @@
   "dataset_root": ".",
   "decisions": {
     "scaling_scope": "all_trials",
-    "include_manual_trim": false,
+    "exclude_restricted_motion_periods": false,
+    "restricted_motion_trim_config_path": "configs/restricted_motion_trim_config.template.json",
     "store_intermediate_stages": false,
     "export_format": "hdf5",
     "hdf5_backend_tables_installed": true
