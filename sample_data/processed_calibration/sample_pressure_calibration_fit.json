@@ -1,0 +1,58 @@
+{
+  "input_raw": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\sample_arduino_fixed_orientation.csv",
+  "sample_rate_hz": 240.0,
+  "steady_detection": {
+    "smooth_window": 31,
+    "std_window": 121,
+    "derivative_threshold": 1.2,
+    "std_threshold": 5.0,
+    "min_duration_s": 1.0,
+    "segments_detected": 24
+  },
+  "affine_calibration": {
+    "slope_pa_per_count": 59.01287553648069,
+    "intercept_pa": -27854.077253218868
+  },
+  "equivalent_ratiometric": {
+    "adc_max": 4095.0,
+    "p_max_pa": 76480.68669527899,
+    "v_min_ratio": 0.11526251526251519,
+    "v_max_ratio": 0.4317460317460317
+  },
+  "equivalent_ratiometric_p_max_source": "fitted_at_observed_max_adc",
+  "fit_metrics": {
+    "n_points": 2.0,
+    "weighted_rmse_pa": 1.7850222485547256e-11,
+    "weighted_mae_pa": 1.7816005038090314e-11,
+    "max_abs_error_pa": 1.8189894035458565e-11,
+    "r2_weighted": 1.0
+  },
+  "fit_points": [
+    {
+      "segment_id": 0,
+      "start_sample": 0,
+      "end_sample": 1241,
+      "duration_s": 5.175,
+      "adc_median": 472.0,
+      "adc_std": 3.3079533524248554,
+      "pressure_kpa": 0.0,
+      "pressure_pa": 0.0,
+      "predicted_pa": 1.8189894035458565e-11,
+      "residual_pa": -1.8189894035458565e-11,
+      "weight": 113.50182445168107
+    },
+    {
+      "segment_id": 9,
+      "start_sample": 27816,
+      "end_sample": 28365,
+      "duration_s": 2.2916666666666665,
+      "adc_median": 1404.0,
+      "adc_std": 6.504136255472518,
+      "pressure_kpa": 55.0,
+      "pressure_pa": 55000.0,
+      "predicted_pa": 55000.000000000015,
+      "residual_pa": -1.4551915228366852e-11,
+      "weight": 13.001199665918985
+    }
+  ]
+}

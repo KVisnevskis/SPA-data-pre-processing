@@ -1,0 +1,6 @@
+{
+  "v_min_ratio": 0.11526251526251519,
+  "v_max_ratio": 0.4317460317460317,
+  "p_max_pa": 76480.68669527899,
+  "source_fit_json": "sample_data\\processed_calibration\\sample_pressure_calibration_fit.json"
+}
