@@ -1,83 +1,117 @@
-# Data Schema
+﻿# Data Schema
 
-Schema version: **v1.0**  
-Applies to: **per-run pre-processed dataset tables** (one table per run in the final dataset file).
+Schema version: **v1.1**  
+Applies to: **final HDF5 export output** produced by `scripts/export_dataset_hdf5.py` / `preprocessing.export_dataset_hdf5`.
 
-## Conventions
+## HDF5 File Structure
+
+- Run tables are stored under run keys (default request is `runs/{run_id}`).
+- Requested run keys are normalized to safe HDF5 segments before write (for example, `runs/0roll` becomes `/runs/run_0roll`).
+- Only final per-run tables are persisted. Intermediate stage tables are not written to the output file.
+- All tables are written with pandas HDF fixed format (`format="fixed"`).
+
+### Run tables
+
+- Key pattern: `/runs/<normalized_run_key>`
+- Value: final preprocessed DataFrame for one run (post-sync, post-downsample, post-scaling)
+
+Minimum required columns for each run table:
+- `pressure`
+- `acc_x`
+- `acc_y`
+- `acc_z`
+- `phi`
+- `Time`
+
+### Metadata tables
+
+- `/meta/runs`
+- `/meta/run_logs`
+- `/meta/run_scaling`
+- `/meta/scaler_parameters`
+- `/meta/calibration`
+- `/meta/export_settings`
+
+`/meta/runs` columns:
+- `run_id`
+- `hdf5_key`
+- `requested_hdf5_key`
+- `sync_mode`
+- `arduino_raw_csv`
+- `optitrack_raw_csv`
+- `rows_final`
+
+`/meta/run_logs` columns:
+- `run_id`
+- `samples_shifted_arduino`
+- `sync_lag_samples`
+- `sync_variable`
+- `sync_max_cross_correlation`
+- `rows_forward_filled_count`
+- `cells_forward_filled_count`
+- `longest_occlusion_stretch_length`
+- `rows_after_sync_trim`
+- `rows_after_downsample`
+- `sync_info_json`
+- `repair_report_json`
+- `downsample_info_json`
+
+`/meta/run_scaling` columns:
+- `run_id`
+- `scaling_info_json`
+
+`/meta/scaler_parameters` columns:
+- `column`
+- `min`
+- `max`
+- `range`
+- `is_constant`
+
+`/meta/calibration` columns:
+- `calibration_type` (`pressure` or `gyro`)
+- `path`
+- `payload_json`
+
+`/meta/export_settings` columns:
+- `manifest_path`
+- `output_hdf5_path`
+- `export_timestamp_utc`
+- `decisions_json`
+- `default_settings_json`
+- `scaling_info_json`
+
+## Run-table Conventions
 
 ### Time
-- `Time` is in **seconds**, measured from the start of the run **after** synchronisation and downsampling.
-- Final sampling period is **1/48 s** (nominal **48 Hz**).
-- Stage-4 default policy is integer decimation by factor `5` from `240 Hz` with anchor `decimation_offset=0` (kept indices `0, 5, 10, ...`).
-- After Stage-4 decimation, `Time` is rebased to `0, 1/48, 2/48, ...` (unless explicitly disabled in processing parameters).
 
-### Coordinate frames
-- **OptiTrack global frame**: laboratory/world frame used by the motion-capture system.
-- **IMU/base frame**: sensor frame rigidly attached to the SPA base (used by `acc_*` and `gyr_*`).
+- `Time` is in seconds.
+- Final sampling period is nominally `1/48 s` when defaults are used (`240 Hz` input, decimation factor `5`).
+- By default, time is rebased after decimation to `0, 1/fs_out, 2/fs_out, ...`.
 
-### Quaternion convention
-- OptiTrack orientations are stored as **components** `*_X, *_Y, *_Z, *_W`.
-- These represent a unit quaternion describing rigid-body orientation in the OptiTrack global frame.
-- Unless explicitly stated elsewhere, treat the quaternion as **(w, x, y, z)** when performing quaternion algebra, but note that storage order is **X, Y, Z, W**.
+### Frames and orientation
 
-### Euler angles and bending angle
-- `phi`, `theta`, `psi` are the **ZYX Euler-angle** representation of the **relative** tip orientation with respect to the base.
-- Units: **radians**.
-- `phi` (ϕ) is the **bending angle** (benidng angle along the major bending axis).
+- OptiTrack columns are in the OptiTrack world frame.
+- IMU columns (`acc_*`, `gyr_*`) are in the IMU/base frame.
+- Quaternions are stored by components as `*_X, *_Y, *_Z, *_W`.
+- `phi`, `theta`, `psi` are ZYX Euler angles from base-to-tip relative orientation.
 
-### Displacement convention
-- `dx`, `dy`, `dz` are the **relative tip displacement components with respect to the base**.
-- Convention for this schema (sign/direction):  
-  **dx = BP_X − TP_X**, **dy = BP_Y − TP_Y**, **dz = BP_Z − TP_Z**  
-  (i.e., base position minus tip position, in the OptiTrack global frame).  
-  If this convention changes, bump schema version.
+### Sensor calibration and scaling
 
-### Scaling
-- The channels used for learning are typically normalised using **global min–max scaling to [-1, 1]**:
-  - `pressure`
-  - `acc_x`, `acc_y`, `acc_z`
-  - `phi`
-- Other channels are stored for reproducibility/analysis and are not necessarily scaled.
-- Stage-5 scaling uses one global scaler fit across all runs in the processing split.
-- Scaled channels overwrite the same column names by default (no separate `_scaled` columns required).
-- Scaler parameters are saved as sidecar metadata (`min`, `max`, `range`, `is_constant` per scaled column).
+- `pressure` is calibrated from ADC using the configured pressure calibration JSON.
+- `gyr_x`, `gyr_y`, `gyr_z` are bias-corrected using the configured gyro calibration JSON.
+- Global min-max scaling to `[-1, 1]` is applied across all selected runs for configured columns.
 
-## Required columns (minimum)
-A dataset is considered valid (v1.0) if it contains, at minimum:
-- `pressure`, `acc_x`, `acc_y`, `acc_z`, `phi`, `Time`
+## Common Run Columns
 
-## Column dictionary
-
-| Column | Type | Units | Frame | Description | Notes |
-|---|---:|---|---|---|---|
-| `Unnamed: 0` | int | – | – | Legacy sample index from the original Arduino log. | Retained for traceability; not used for learning. |
-| `acc_x` | float | m/s² | IMU/base | Accelerometer x-axis (gravity + linear acceleration). | Often scaled to [-1, 1]. |
-| `acc_y` | float | m/s² | IMU/base | Accelerometer y-axis (gravity + linear acceleration). | Often scaled to [-1, 1]. |
-| `acc_z` | float | m/s² | IMU/base | Accelerometer z-axis (gravity + linear acceleration). | Often scaled to [-1, 1]. |
-| `gyr_x` | float | (as recorded) | IMU/base | Gyroscope x-axis angular velocity. | Stored; not required for baseline learning. |
-| `gyr_y` | float | (as recorded) | IMU/base | Gyroscope y-axis angular velocity. | Stored; not required for baseline learning. |
-| `gyr_z` | float | (as recorded) | IMU/base | Gyroscope z-axis angular velocity. | Stored; not required for baseline learning. |
-| `flex` | float | (raw or calibrated) | local sensor | Flex sensor output, proportional to local curvature. | Stored; not required for baseline learning. |
-| `pressure` | float | Pa | – | Internal chamber pressure (calibrated). | Often scaled to [-1, 1]. |
-| `Time` | float | s | – | Timestamp from start of run after synchronisation/downsampling. | Monotonic; dt ≈ 1/48 s. |
-| `BR_X` | float | – | OptiTrack global | Base rigid-body quaternion x component. | Stored order X,Y,Z,W. |
-| `BR_Y` | float | – | OptiTrack global | Base rigid-body quaternion y component. |  |
-| `BR_Z` | float | – | OptiTrack global | Base rigid-body quaternion z component. |  |
-| `BR_W` | float | – | OptiTrack global | Base rigid-body quaternion w (scalar) component. |  |
-| `BP_X` | float | m | OptiTrack global | Base rigid-body x position. |  |
-| `BP_Y` | float | m | OptiTrack global | Base rigid-body y position. |  |
-| `BP_Z` | float | m | OptiTrack global | Base rigid-body z position. |  |
-| `TR_X` | float | – | OptiTrack global | Tip rigid-body quaternion x component. | Stored order X,Y,Z,W. |
-| `TR_Y` | float | – | OptiTrack global | Tip rigid-body quaternion y component. |  |
-| `TR_Z` | float | – | OptiTrack global | Tip rigid-body quaternion z component. |  |
-| `TR_W` | float | – | OptiTrack global | Tip rigid-body quaternion w (scalar) component. |  |
-| `TP_X` | float | m | OptiTrack global | Tip rigid-body x position. |  |
-| `TP_Y` | float | m | OptiTrack global | Tip rigid-body y position. |  |
-| `TP_Z` | float | m | OptiTrack global | Tip rigid-body z position. |  |
-| `phi` | float | rad | relative base→tip | Bending angle ϕ from ZYX Euler of relative quaternion. | Learning target; often scaled to [-1, 1]. |
-| `theta` | float | rad | relative base→tip | Secondary Euler angle θ from ZYX Euler of relative quaternion. | Stored for analysis. |
-| `psi` | float | rad | relative base→tip | Secondary Euler angle ψ from ZYX Euler of relative quaternion. | Stored for analysis. |
-| `dx` | float | m | OptiTrack global | Relative displacement x component (BP_X − TP_X). | Convention must remain consistent. |
-| `dy` | float | m | OptiTrack global | Relative displacement y component (BP_Y − TP_Y). |  |
-| `dz` | float | m | OptiTrack global | Relative displacement z component (BP_Z − TP_Z). |  |
-
+| Column | Type | Units | Description |
+|---|---:|---|---|
+| `Time` | float | s | Final run timebase after sync/downsample/rebase. |
+| `pressure` | float | Pa | Calibrated pressure. |
+| `pressure_adc` | float | counts | Raw pressure ADC retained for traceability. |
+| `acc_x`, `acc_y`, `acc_z` | float | m/s^2 | IMU acceleration channels. |
+| `gyr_x`, `gyr_y`, `gyr_z` | float | rad/s | Bias-corrected gyroscope channels. |
+| `flex` | float | counts | Flex sensor channel. |
+| `BR_X..BR_W`, `TR_X..TR_W` | float | unitless | Base/tip quaternions (X,Y,Z,W component columns). |
+| `BP_X..BP_Z`, `TP_X..TP_Z` | float | m | Base/tip positions. |
+| `phi`, `theta`, `psi` | float | rad | Relative Euler angles (ZYX). |
+| `dx`, `dy`, `dz` | float | m | Relative displacement components. |

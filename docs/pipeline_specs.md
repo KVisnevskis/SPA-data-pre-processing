@@ -1,170 +1,133 @@
-# Data Pre-processing Pipeline Specification
+﻿# Data Pre-processing Pipeline Specification
 
 ## Purpose
-Transform raw Arduino sensor logs and raw OptiTrack motion-capture logs into a single, temporally aligned, filtered, downsampled, and consistently scaled dataset per run. The primary supervised target is the bending angle **ϕ(t)** derived from OptiTrack.
-
----
+Transform raw Arduino sensor logs and raw OptiTrack motion-capture logs into one HDF5 dataset containing synchronized, filtered, downsampled, and globally scaled per-run tables plus reproducibility metadata.
 
 ## Inputs (per run)
-1) **Arduino raw log**
-- Pressure
+1. Arduino raw CSV
+- Pressure ADC and flex ADC
 - Accelerometer (3-axis)
-- (Optional/retained) Gyroscope, flex sensor
-- Time base (sample index)
+- Gyroscope (3-axis)
 
-2) **OptiTrack raw log**
-- Base rigid-body quaternion and position 
-- Tip rigid-body quaternion and position 
-- Time base (timestamps)
+2. OptiTrack raw CSV
+- Base rigid-body quaternion and position
+- Tip rigid-body quaternion and position
 
----
+## Final Output (single HDF5)
 
-## Outputs
-A dataset containing one entry per run (e.g., HDF5 key per run). Each run contains a time-series table at the final sampling rate with at minimum:
-- `pressure`
-- `acc_x`, `acc_y`, `acc_z`
-- `phi` (ϕ)
+Per-run tables:
+- One table per run at `/runs/<normalized_run_key>`
+- Each run table is final stage output only (post-sync, post-downsample, post-scaling)
 
-Additional channels (e.g., Euler angles, positions, quaternions, displacement components) may be included as long as they are consistently defined.
+Metadata tables:
+- `/meta/runs`
+- `/meta/run_logs`
+- `/meta/run_scaling`
+- `/meta/scaler_parameters`
+- `/meta/calibration`
+- `/meta/export_settings`
+
+Not exported:
+- Intermediate stage tables (`arduino_raw_table`, repaired OptiTrack table, pre-scaling stage tables)
 
 ---
 
 ## Pipeline stages
 
-### Stage 0 — Ingest and standardise
-**What it does**
-- Reads raw Arduino and raw OptiTrack files.
-- Produces two typed, consistently named tables with explicit units and a monotonic time/index.
-- Ensures the required fields exist (pressure + accel for Arduino; base/tip pose for OptiTrack).
+### Stage 0 - Ingest and calibrate
 
-**Implementation conventions (current code)**
-- Pressure calibration is fitted from labeled steady-state pressure plateaus in the fixed-orientation run using an affine model (`P_pa = m*ADC + b`), then stored as equivalent ratiometric parameters (`v_min_ratio`, `v_max_ratio`, `p_max_pa`) in JSON (e.g., `calibration/arduino_pressure_calibration.json`).
-- Pressure conversion in `arduino_raw` is linear and is not clipped by default.
-- Gyro calibration estimates stationary per-axis bias from fixed-orientation data and subtracts this bias from `gyr_x/y/z` during ingest (e.g., `calibration/arduino_gyro_calibration.json`).
+What it does:
+- Load raw Arduino and OptiTrack CSVs.
+- Decode Arduino bytes into typed sensor channels.
+- Apply pressure calibration from JSON to produce `pressure` (Pa).
+- Apply gyro bias calibration from JSON to produce corrected `gyr_x/y/z`.
+- Standardize column names and typed run tables.
 
-**Output**
+Output:
 - `arduino_raw_table`
 - `optitrack_raw_table`
 
----
+### Stage 1 - Repair missing OptiTrack samples
 
-### Stage 1 — Repair missing OptiTrack samples (zero-order hold)
-**What it does**
-- Handles missing OptiTrack samples (e.g., occlusions) by forward-filling (zero-order hold) pose data so downstream computations are defined at every sample.
-- (Optional) Renormalises quaternions after fill, if required by your convention.
+What it does:
+- Forward-fill missing OptiTrack samples (zero-order hold).
+- Keep diagnostics on filled rows/cells and occlusion stretch lengths.
 
-**Output**
+Output:
 - `optitrack_repaired_table`
+- `repair_report`
 
----
+### Stage 2 - Compute OptiTrack features
 
-### Stage 2 — Compute ground-truth kinematics from OptiTrack
-**What it does**
-1) **Relative orientation**
-- Computes the relative quaternion between base and tip:
-  - `q_rel = q_base^{-1} ⊗ q_tip`
+What it does:
+- Compute base-to-tip relative orientation.
+- Convert to ZYX Euler (`phi`, `theta`, `psi`).
+- Compute relative displacement (`dx`, `dy`, `dz`).
 
-2) **Euler angles (ZYX)**
-- Converts `q_rel` into Euler angles using a ZYX convention.
-- Defines **ϕ** as the bending angle about the major bending axis.
+Output:
+- `optitrack_features_table`
 
-3) **Relative displacement**
-- Computes displacement components using your chosen convention (document the sign convention once and use it everywhere).
+### Stage 3 - Synchronize and overlap-trim
 
-**Output**
-- `optitrack_features_table` (includes `phi` and any supporting features)
+What it does:
+- Fixed runs: sync Arduino pressure to transformed `phi` (`none` / `invert` / `abs` / `auto`).
+- Freehand runs: sync Arduino accelerometer to virtual accelerometer from OptiTrack orientation.
+- Apply sample shift and trim to overlapping valid region.
 
----
+Recorded diagnostics:
+- Applied Arduino sample shift
+- Lag at max cross-correlation
+- Sync variable and max cross-correlation value
+- Rows after sync trim
 
-### Stage 3 — Synchronise Arduino and OptiTrack (cross-correlation) + trim
-**What it does**
-- Estimates the time offset between Arduino and OptiTrack streams using cross-correlation:
-  - `R_xy[k] = Σ x[n] y[n + k]`
-  - `k* = argmax_k R_xy[k]`
+Output:
+- `synced_table`
+- `sync_info`
 
-**Fixed-orientation runs**
-- Uses:
-  - `x[n] = pressure[n]` (Arduino)
-  - `y[n] = transform(phi[n])` (OptiTrack), where `transform` can be one of:
-    - `none` (raw phi)
-    - `invert` (-phi)
-    - `abs` (|phi|)
-    - `auto` (select the transform with highest cross-correlation)
-- Applies the lag `k*` as a shift to align streams.
-- Note: this implementation detail must be updated in the thesis text (Chapter 3) so method description and code are consistent.
+### Stage 4 - Filter and downsample
 
-**Freehand/dynamic runs**
-- Builds a “virtual accelerometer” reference from OptiTrack base orientation by rotating the gravity vector from world into the base frame (exact rotation direction/sign must match your quaternion and IMU conventions).
-- Synchronises measured accelerometer to this virtual accelerometer via cross-correlation, then applies the lag.
+What it does:
+- Moving-average filter.
+- Integer decimation (default `240 Hz -> 48 Hz`, factor `5`, offset `0`).
+- Optional time rebasing (default enabled).
 
-**Freehand manual trim (post-sync)**
-- For freehand runs, perform an additional manual trim after synchronization to remove initial/final static periods where the actuator is resting on a surface.
-- Inspect accelerometer channels (`acc_x`, `acc_y`, `acc_z`) on the synchronized run and select trim boundaries:
-  - `trim_start_samples`: number of samples removed from the beginning.
-  - `trim_end_samples`: number of samples removed from the end.
-- Apply this trim after overlap trim and before Stage 4 filtering/downsampling.
-- Store the trim decisions in a run-level trim manifest/log so the process is reproducible.
-- Record per-run diagnostics:
-  - `rows_before_manual_trim`
-  - `trim_start_samples`
-  - `trim_end_samples`
-  - `rows_after_manual_trim`
-  - `rows_trimmed_manual_total`
-  - `first_kept_original_row`, `last_kept_original_row`
+Recorded diagnostics:
+- Row counts before/after
+- Effective sample rates and decimation settings
 
-**Trim**
-- After shifting, trims the combined data to the time interval where all required channels overlap.
-
-**Output**
-- `synced_table` (Arduino + OptiTrack features aligned on a common timeline)
-
----
-
-### Stage 4 — Filter and downsample
-**What it does**
-- Applies a moving-average (sliding mean) filter to reduce high-frequency noise.
-- Downsamples from the OptiTrack/merged rate to the desired final rate via decimation (e.g., 240 Hz → 48 Hz by factor 5).
-- Produces the final time base used by the model.
-
-**Implementation conventions (current code)**
-- Moving-average window: `5` samples by default.
-- Filter alignment: `centered` by default (optional `causal` mode).
-- Edge handling: partial windows are averaged (`min_periods=1`), so no rows are dropped by filtering.
-- Decimation policy: keep rows at indices `decimation_offset + n * decimation_factor` (default offset `0`).
-- Default sample-rate conversion: `240 Hz -> 48 Hz` with decimation factor `5`.
-- Time-base policy: after decimation, `Time` is rebased to start at `0` with step `1 / output_sample_rate_hz`.
-- Optional diagnostics metadata includes row counts before/after, dropped rows, decimation settings, and effective sample rates.
-
-**Output**
+Output:
 - `filtered_downsampled_table`
+- `stage4_info`
 
----
+### Stage 5 - Global scaling
 
-### Stage 5 — Global scaling to [-1, 1]
-**What it does**
-- Computes global minima and maxima across the dataset for the channels you scale (at minimum: pressure, accelerometer axes, and ϕ).
-- Applies a consistent min–max scaling to map each scaled channel into `[-1, 1]`.
-- Stores the scaler parameters (min/max per channel) for reproducibility.
+What it does:
+- Fit one global min-max scaler across all selected runs.
+- Apply to configured columns (default: `pressure`, `acc_x`, `acc_y`, `acc_z`, `phi`).
+- Overwrite the same column names with scaled values.
 
-**Implementation conventions (current code)**
-- Fit one scaler across all runs in the same processing split (global min/max per scaled column).
-- Default scaled columns: `pressure`, `acc_x`, `acc_y`, `acc_z`, `phi`.
-- Scaled values overwrite the same column names (no `_scaled` suffix by default).
-- Constant-column policy: if a column has zero global range, output zeros for that column.
-- Persist scaler artifacts as JSON (per-column `min`, `max`, `range`, `is_constant`) plus a run-level scaling log.
+Recorded artifacts:
+- Per-column scaler parameters (`min`, `max`, `range`, `is_constant`)
+- Per-run scaling diagnostics JSON
 
-**Output**
-- `scaled_table`
-- `scaler_parameters` (saved alongside the dataset)
+Output:
+- `scaled_table` (per run)
+- `scaler_parameters`
+- `scaling_info`
 
----
+### Stage 6 - Export HDF5
 
-### Stage 6 — Export
-**What it does**
-- Writes the final per-run tables to the chosen dataset format (HDF5), using a stable column schema.
-- Stores run-level metadata as attributes or a sidecar file (e.g., run type, applied sync shift, final sampling rate).
+What it does:
+- Write each run's `scaled_table` to its run key (`/runs/...`).
+- Write metadata tables to `/meta/*`.
 
-**Output**
-- Final dataset file (one entry per run)
+Exported table contents:
+- `/meta/runs`: run identity, resolved HDF5 key, input CSV paths, sync mode, final row count.
+- `/meta/run_logs`: sync shift, lag, correlation, forward-fill counts, stage-4 row counts, and JSON blobs (`sync_info_json`, `repair_report_json`, `downsample_info_json`).
+- `/meta/run_scaling`: per-run `scaling_info_json`.
+- `/meta/scaler_parameters`: global scaler fit parameters.
+- `/meta/calibration`: pressure/gyro calibration path and payload JSON snapshots.
+- `/meta/export_settings`: manifest path, output path, UTC export timestamp, decisions/default settings/scaling payload JSON.
 
----
+Storage format:
+- All HDF5 tables are written with pandas fixed format (`format="fixed"`).
