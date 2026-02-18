@@ -1,0 +1,17 @@
+{
+  "input_raw": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\sample_arduino_fixed_orientation.csv",
+  "sample_rate_hz": 240.0,
+  "method": "mean",
+  "gyro_calibration": {
+    "bias_x_rads": 0.07510832246937953,
+    "bias_y_rads": 0.00942189719402057,
+    "bias_z_rads": 0.021352184885171925
+  },
+  "stats": {
+    "n_samples": 63120.0,
+    "method": "mean",
+    "std_x_rads": 0.0034456153609943026,
+    "std_y_rads": 0.010234088204646866,
+    "std_z_rads": 0.005239567646533283
+  }
+}

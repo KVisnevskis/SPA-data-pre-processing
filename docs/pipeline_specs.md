@@ -37,6 +37,11 @@ Additional channels (e.g., Euler angles, positions, quaternions, displacement co
 - Produces two typed, consistently named tables with explicit units and a monotonic time/index.
 - Ensures the required fields exist (pressure + accel for Arduino; base/tip pose for OptiTrack).
 
+**Implementation conventions (current code)**
+- Pressure calibration is fitted from labeled steady-state pressure plateaus in the fixed-orientation run using an affine model (`P_pa = m*ADC + b`), then stored as equivalent ratiometric parameters (`v_min_ratio`, `v_max_ratio`, `p_max_pa`) in JSON (e.g., `calibration/arduino_pressure_calibration.json`).
+- Pressure conversion in `arduino_raw` is linear and is not clipped by default.
+- Gyro calibration estimates stationary per-axis bias from fixed-orientation data and subtracts this bias from `gyr_x/y/z` during ingest (e.g., `calibration/arduino_gyro_calibration.json`).
+
 **Output**
 - `arduino_raw_table`
 - `optitrack_raw_table`

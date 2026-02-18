@@ -1,0 +1,6 @@
+{
+  "bias_x_rads": 0.07510832246937953,
+  "bias_y_rads": 0.00942189719402057,
+  "bias_z_rads": 0.021352184885171925,
+  "source_fit_json": "C:\\Users\\visne\\Documents\\GitHub\\SPA-data-pre-processing\\sample_data\\processed_calibration\\sample_gyro_calibration_fit.json"
+}
