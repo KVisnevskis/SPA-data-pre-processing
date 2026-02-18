@@ -173,6 +173,24 @@ def apply_restricted_motion_trim_for_run(
         return arduino_out, optitrack_out
 
     cfg = trim_config_by_run[run_key]
+    has_arduino_bounds = (
+        cfg.arduino.trim_up_to is not None or cfg.arduino.trim_after is not None
+    )
+    has_optitrack_bounds = (
+        cfg.optitrack.trim_up_to is not None or cfg.optitrack.trim_after is not None
+    )
+    if not has_arduino_bounds and not has_optitrack_bounds:
+        arduino_out = arduino_df.reset_index(drop=True)
+        optitrack_out = optitrack_df.reset_index(drop=True)
+        if return_info:
+            return arduino_out, optitrack_out, {
+                "applied": False,
+                "reason": "no_bounds_for_run",
+                "run_id": run_key,
+                "notes": cfg.notes,
+            }
+        return arduino_out, optitrack_out
+
     arduino_out, arduino_info = _trim_single_dataframe(
         arduino_df,
         trim_up_to=cfg.arduino.trim_up_to,
@@ -195,4 +213,3 @@ def apply_restricted_motion_trim_for_run(
             "optitrack": optitrack_info,
         }
     return arduino_out, optitrack_out
-
