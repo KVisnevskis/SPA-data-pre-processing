@@ -15,6 +15,7 @@ from preprocessing.arduino_raw import (
     load_arduino_raw_csv,
     load_pressure_calibration_json,
 )
+from preprocessing.gyro_calibration import GyroCalibration, load_gyro_calibration_json
 
 
 def _pick_existing(base_dir: Path, candidates: list[str]) -> Path:
@@ -83,6 +84,15 @@ def build_parser() -> argparse.ArgumentParser:
         ),
     )
     parser.add_argument(
+        "--gyro-calibration-json",
+        type=Path,
+        default=None,
+        help=(
+            "Optional JSON file with gyro bias calibration "
+            "(bias_x_rads/bias_y_rads/bias_z_rads)."
+        ),
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Only print what would be generated without writing CSV files.",
@@ -103,6 +113,11 @@ def main() -> int:
             v_max_ratio=args.pressure_v_max_ratio,
             p_max_pa=args.pressure_max_pa,
         )
+    gyro_calib = (
+        load_gyro_calibration_json(args.gyro_calibration_json)
+        if args.gyro_calibration_json is not None
+        else GyroCalibration()
+    )
 
     fixed_input = _pick_existing(
         input_dir,
@@ -130,6 +145,7 @@ def main() -> int:
             sample_rate_hz=args.sample_rate_hz,
             accel_to_mps2=not args.accel_in_g,
             pressure_calib=calib,
+            gyro_calib=gyro_calib,
         )
         out_path = output_dir / out_name
 

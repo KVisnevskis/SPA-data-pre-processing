@@ -9,6 +9,12 @@ import numpy as np
 import pandas as pd
 import math
 
+from preprocessing.gyro_calibration import (
+    GyroCalibration,
+    apply_gyro_bias_correction,
+    load_gyro_calibration_json,
+)
+
 
 @dataclass(frozen=True)
 class PressureCalibration:
@@ -131,6 +137,8 @@ def load_arduino_raw_csv(
     accel_to_mps2: bool = True,
     pressure_calib: PressureCalibration = PressureCalibration(),
     pressure_calib_json_path: str | Path | None = None,
+    gyro_calib: GyroCalibration = GyroCalibration(),
+    gyro_calib_json_path: str | Path | None = None,
 ) -> pd.DataFrame:
     """
     Load an Arduino raw CSV where each line contains 16 integers (bytes).
@@ -139,6 +147,8 @@ def load_arduino_raw_csv(
     path = Path(path)
     if pressure_calib_json_path is not None:
         pressure_calib = load_pressure_calibration_json(pressure_calib_json_path)
+    if gyro_calib_json_path is not None:
+        gyro_calib = load_gyro_calibration_json(gyro_calib_json_path)
 
     raw = pd.read_csv(path, header=None)
     if raw.shape[1] != 16:
@@ -163,9 +173,15 @@ def load_arduino_raw_csv(
         df["acc_z"] = df["acc_z_g"]
 
     # Gyro: keep in rad/s (explicitly named in decode)
-    df["gyr_x"] = df["gyr_x_rads"]
-    df["gyr_y"] = df["gyr_y_rads"]
-    df["gyr_z"] = df["gyr_z_rads"]
+    gyr_x, gyr_y, gyr_z = apply_gyro_bias_correction(
+        df["gyr_x_rads"].to_numpy(dtype=np.float64),
+        df["gyr_y_rads"].to_numpy(dtype=np.float64),
+        df["gyr_z_rads"].to_numpy(dtype=np.float64),
+        calibration=gyro_calib,
+    )
+    df["gyr_x"] = gyr_x
+    df["gyr_y"] = gyr_y
+    df["gyr_z"] = gyr_z
 
     # Pressure in Pa + keep ADC for traceability
     df["pressure"] = pressure_adc_to_pa(df["pressure_adc"].to_numpy(), calib=pressure_calib)

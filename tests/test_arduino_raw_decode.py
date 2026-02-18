@@ -71,3 +71,28 @@ def test_load_pressure_calibration_json_accepts_flat_and_nested(tmp_path):
     assert np.isclose(c2.v_max_ratio, 0.41, atol=1e-12)
     assert np.isclose(c2.p_max_pa, 70000.0, atol=1e-12)
 
+
+def test_load_arduino_raw_applies_gyro_bias_json(tmp_path):
+    repo_root = Path(__file__).resolve().parents[1]
+    path = repo_root / "sample_data" / "sample_arduino_fixed_orientation.csv"
+
+    base = load_arduino_raw_csv(path)
+    bias = {"bias_x_rads": 0.01, "bias_y_rads": -0.02, "bias_z_rads": 0.005}
+    bias_path = tmp_path / "gyro_bias.json"
+    bias_path.write_text(json.dumps(bias), encoding="utf-8")
+
+    corrected = load_arduino_raw_csv(path, gyro_calib_json_path=bias_path)
+
+    assert np.isclose(
+        corrected.iloc[0]["gyr_x"], base.iloc[0]["gyr_x_rads"] - bias["bias_x_rads"], atol=1e-12
+    )
+    assert np.isclose(
+        corrected.iloc[0]["gyr_y"], base.iloc[0]["gyr_y_rads"] - bias["bias_y_rads"], atol=1e-12
+    )
+    assert np.isclose(
+        corrected.iloc[0]["gyr_z"], base.iloc[0]["gyr_z_rads"] - bias["bias_z_rads"], atol=1e-12
+    )
+
+    # Traceability columns remain raw decode outputs
+    assert np.isclose(corrected.iloc[0]["gyr_x_rads"], base.iloc[0]["gyr_x_rads"], atol=1e-12)
+
