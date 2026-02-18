@@ -95,12 +95,29 @@ def _euler_zyx_from_quaternion(
     return phi, theta, psi
 
 
+def _unwrap_radians(values: np.ndarray) -> np.ndarray:
+    out = np.asarray(values, dtype=np.float64).copy()
+    finite_idx = np.flatnonzero(np.isfinite(out))
+    if finite_idx.size == 0:
+        return out
+
+    # Unwrap contiguous finite segments independently.
+    split = np.flatnonzero(np.diff(finite_idx) > 1)
+    starts = np.concatenate(([0], split + 1))
+    ends = np.concatenate((split + 1, [finite_idx.size]))
+    for s, e in zip(starts, ends):
+        seg_idx = finite_idx[s:e]
+        out[seg_idx] = np.unwrap(out[seg_idx])
+    return out
+
+
 def compute_optitrack_relative_features(
     df: pd.DataFrame,
     *,
     normalize_quaternions: bool = True,
     strict: bool = False,
     include_relative_quaternion: bool = False,
+    unwrap_phi: bool = True,
     copy: bool = True,
 ) -> pd.DataFrame:
     """
@@ -109,6 +126,7 @@ def compute_optitrack_relative_features(
     Computes:
       q_rel = q_base^{-1} * q_tip
       phi/theta/psi from q_rel using ZYX equations
+      optional phase-unwrapping of phi for continuity across +/-pi
       dx/dy/dz using schema convention: BP - TP
 
     If strict=False, non-finite input rows are preserved as NaN outputs.
@@ -159,6 +177,8 @@ def compute_optitrack_relative_features(
     )
 
     phi, theta, psi = _euler_zyx_from_quaternion(qrel_w, qrel_x, qrel_y, qrel_z)
+    if unwrap_phi:
+        phi = _unwrap_radians(phi)
 
     out["phi"] = phi
     out["theta"] = theta

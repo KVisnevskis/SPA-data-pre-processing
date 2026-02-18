@@ -72,3 +72,45 @@ def test_compute_optitrack_relative_features_normalizes_quaternions():
             atol=1e-12,
             equal_nan=True,
         )
+
+
+def _quat_x(angle_rad: float) -> tuple[float, float, float, float]:
+    half = 0.5 * angle_rad
+    return (float(np.cos(half)), float(np.sin(half)), 0.0, 0.0)
+
+
+def test_compute_optitrack_relative_features_unwraps_phi_by_default():
+    # Construct a sequence that crosses +pi -> -pi in principal-angle form.
+    # Unwrapped output should stay continuous.
+    angles = np.deg2rad(np.array([179.0, -179.0, -178.0], dtype=np.float64))
+    rows: list[dict[str, float]] = []
+    for a in angles:
+        tr_w, tr_x, tr_y, tr_z = _quat_x(float(a))
+        rows.append(
+            {
+                "BR_X": 0.0,
+                "BR_Y": 0.0,
+                "BR_Z": 0.0,
+                "BR_W": 1.0,
+                "BP_X": 0.0,
+                "BP_Y": 0.0,
+                "BP_Z": 0.0,
+                "TR_X": tr_x,
+                "TR_Y": tr_y,
+                "TR_Z": tr_z,
+                "TR_W": tr_w,
+                "TP_X": 0.0,
+                "TP_Y": 0.0,
+                "TP_Z": 0.0,
+            }
+        )
+    df = pd.DataFrame(rows)
+
+    wrapped = compute_optitrack_relative_features(df, unwrap_phi=False)
+    unwrapped = compute_optitrack_relative_features(df, unwrap_phi=True)
+
+    wrapped_jump = np.max(np.abs(np.diff(wrapped["phi"].to_numpy(dtype=np.float64))))
+    unwrapped_jump = np.max(np.abs(np.diff(unwrapped["phi"].to_numpy(dtype=np.float64))))
+
+    assert wrapped_jump > np.pi
+    assert unwrapped_jump < 0.2

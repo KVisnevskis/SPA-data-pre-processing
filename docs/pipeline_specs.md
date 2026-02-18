@@ -62,6 +62,7 @@ Output:
 What it does:
 - Compute base-to-tip relative orientation.
 - Convert to ZYX Euler (`phi`, `theta`, `psi`).
+- Unwrap `phi` across `+/-pi` to keep a continuous bending-angle trajectory.
 - Compute relative displacement (`dx`, `dy`, `dz`).
 
 Output:

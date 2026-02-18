@@ -95,6 +95,7 @@ Minimum required columns for each run table:
 - IMU columns (`acc_*`, `gyr_*`) are in the IMU/base frame.
 - Quaternions are stored by components as `*_X, *_Y, *_Z, *_W`.
 - `phi`, `theta`, `psi` are ZYX Euler angles from base-to-tip relative orientation.
+- `phi` is phase-unwrapped (continuous across `+/-pi`) to avoid wrap-around jumps.
 
 ### Sensor calibration and scaling
 
