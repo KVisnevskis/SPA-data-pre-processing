@@ -4,6 +4,18 @@ End-to-end preprocessing pipeline for converting raw Arduino and OptiTrack trial
 logs into synchronized, downsampled, globally scaled HDF5 datasets for model
 development.
 
+## Raw Data Access (Zenodo)
+
+Raw trial data is not tracked in git. Download the dataset ZIP from Zenodo:
+
+- DOI: `10.5281/zenodo.18697336`
+- URL: https://zenodo.org/records/18697336
+
+After download, extract the archive so this repository has:
+
+- `data/arduino_raw/*.csv`
+- `data/optitrack_raw/*.csv`
+
 ## What This Repository Does
 
 The pipeline processes each run through these stages:
@@ -39,13 +51,18 @@ Optional dependencies:
 python -m pip install tables matplotlib
 ```
 
-### 2) Preview selected runs from the manifest
+### 2) Download and extract raw data
+
+Download from Zenodo (links above) and extract into `data/` so manifest paths
+in `configs/preprocessing_manifest_all_trials.json` resolve correctly.
+
+### 3) Preview selected runs from the manifest
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\export_dataset_hdf5.py --dry-run
 ```
 
-### 3) Run full export
+### 4) Run full export
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\export_dataset_hdf5.py --overwrite
@@ -53,7 +70,7 @@ python -m pip install tables matplotlib
 
 Default output path: `outputs/preprocessed_all_trials.h5`
 
-### 4) Inspect data
+### 5) Inspect data
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\inspect_raw_gui.py
@@ -77,7 +94,7 @@ Default output path: `outputs/preprocessed_all_trials.h5`
 - `scripts/`: CLI entrypoints for export, calibration, sample generation, and inspection.
 - `tests/`: unit/integration tests.
 - `configs/`: manifest and preprocessing config files.
-- `data/`: full raw dataset and legacy reference artifact.
+- `data/`: extracted raw dataset (from Zenodo) plus legacy reference artifact.
 - `sample_data/`: small raw and processed sample files for quick validation.
 - `outputs/`: generated exports and one-off analysis artifacts (gitignored).
 - `docs/`: detailed documentation.
@@ -98,3 +115,8 @@ Run test suite:
 ```powershell
 .\.venv\Scripts\python.exe -m pytest -q
 ```
+
+## License
+
+This repository is licensed under Creative Commons Attribution 4.0
+International (CC BY 4.0). See `LICENSE`.

@@ -1,6 +1,14 @@
 ## Data Directory
 
-This folder contains full raw trial inputs used by the preprocessing pipeline.
+This folder stores raw trial inputs used by the preprocessing pipeline.
+
+Raw data is distributed via Zenodo (not tracked in git):
+
+- DOI: `10.5281/zenodo.18697336`
+- URL: https://zenodo.org/records/18697336
+
+Download the dataset ZIP and extract it into this directory so these paths
+exist:
 
 - `arduino_raw/`: raw Arduino trial logs
 - `optitrack_raw/`: raw OptiTrack trial logs
