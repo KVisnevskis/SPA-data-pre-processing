@@ -1,11 +1,12 @@
 ## Outputs Directory
 
-Generated datasets and one-off analysis artifacts are written here.
+Generated exports and one-off analysis artifacts are written here.
 
 Typical files:
+
 - `preprocessed_all_trials.h5`
 - `preprocessed_all_trials_no_trim.h5`
-- comparison CSV/JSON reports from validation scripts
+- comparison CSV and JSON reports from validation work
 
-This directory is gitignored (except this README) to keep intermediate outputs
+This directory is gitignored (except this README) to keep generated artifacts
 out of version control.

@@ -1,8 +1,23 @@
-## Sample data (raw)
+## Sample Data
 
-- **Fixed orientation:** 0-roll, 0-pitch configuration, *Run 1*. The SPA is driven using the **test-trajectory** pressure input.
-- **Freehand manipulation:** *Run 1* of the freehand manipulation experiments. The same **test-trajectory** pressure input is used, but the platform is held in an operator’s hand and moved freely in space (translation and rotation).
+This folder contains both raw and staged sample files for quick local
+validation of the preprocessing pipeline.
 
-These files are **raw** (pre-processing has not been applied). The full dataset is available at **(TBD)**.
+Raw sample inputs:
 
-These sample datasets are included to validate the preprocessing scripts in this repository.
+- `sample_arduino_fixed_orientation.csv`
+- `sample_arduino_freehand_manipulation.csv`
+- `sample_optitrack_fixed_orientation.csv`
+- `sample_optitrack_freehand_manipulation.csv`
+
+Processed stage folders:
+
+- `processed_arduino/`
+- `processed_optitrack/`
+- `processed_synced/`
+- `processed_downsample/`
+- `processed_scaled/`
+- `processed_calibration/`
+
+These files are intended for script and test validation. The full raw dataset
+used by the main manifest is in `data/`.

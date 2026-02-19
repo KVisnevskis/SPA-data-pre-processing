@@ -1,11 +1,11 @@
 ## Data Directory
 
-Contents in this folder are source inputs and legacy reference files used by the
-pipeline and validation scripts.
+This folder contains full raw trial inputs used by the preprocessing pipeline.
 
-- `arduino_raw/` and `optitrack_raw/`: raw trial logs
-- `synced_48Hz_trim_LEGACY.h5`: legacy comparison target
-- `preprocessing_manifest_all_trials.json`: compatibility copy of manifest
+- `arduino_raw/`: raw Arduino trial logs
+- `optitrack_raw/`: raw OptiTrack trial logs
+- `synced_48Hz_trim_LEGACY.h5`: legacy reference artifact for historical
+  comparison
 
-Canonical manifest editing should be done in:
-`configs/preprocessing_manifest_all_trials.json`.
+Use `configs/preprocessing_manifest_all_trials.json` to select and configure
+which runs are exported.
