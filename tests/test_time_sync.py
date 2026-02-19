@@ -53,7 +53,6 @@ def test_synchronize_fixed_orientation_on_sample_data():
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
 
@@ -84,7 +83,6 @@ def test_synchronize_fixed_orientation_auto_vs_none_on_sample_data():
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
 

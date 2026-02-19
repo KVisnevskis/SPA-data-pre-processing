@@ -60,7 +60,6 @@ def test_repair_optitrack_missing_samples_cleans_sample_file_pose_nans():
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
 

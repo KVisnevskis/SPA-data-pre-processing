@@ -111,7 +111,6 @@ def main() -> int:
         input_dir,
         [
             "sample_synced_fixed_orientation_stage3.csv",
-            "sample_synced_fixed_orientaion_stage3.csv",
         ],
     )
     freehand_input = _pick_existing(

@@ -82,7 +82,6 @@ def main() -> int:
         input_dir,
         [
             "sample_optitrack_fixed_orientation.csv",
-            "sample_optitrack_fixed_orientaion.csv",
         ],
     )
     freehand_input = _pick_existing(

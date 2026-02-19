@@ -22,7 +22,6 @@ def test_compute_optitrack_relative_features_fixed_orientation_first_row():
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
 
@@ -53,7 +52,6 @@ def test_compute_optitrack_relative_features_normalizes_quaternions():
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
     df_raw = load_optitrack_raw_csv(path)

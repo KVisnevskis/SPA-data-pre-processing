@@ -14,14 +14,10 @@ def _pick_existing(repo_root: Path, candidates: list[str]) -> Path:
 
 def test_load_optitrack_fixed_orientation_first_row():
     repo_root = Path(__file__).resolve().parents[1]
-
-    # Your sample file name has been seen with a typo ("orientaion") in some repos,
-    # so this test tolerates either spelling.
     path = _pick_existing(
         repo_root,
         [
             "sample_data/sample_optitrack_fixed_orientation.csv",
-            "sample_data/sample_optitrack_fixed_orientaion.csv",
         ],
     )
 

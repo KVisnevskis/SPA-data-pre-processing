@@ -96,7 +96,6 @@ def main() -> int:
         arduino_dir,
         [
             "sample_arduino_fixed_orientation_processed.csv",
-            "sample_arduino_fixed_orientaion_processed.csv",
         ],
     )
     freehand_arduino = _pick_existing(
@@ -108,7 +107,6 @@ def main() -> int:
         optitrack_dir,
         [
             "sample_optitrack_fixed_orientation_processed.csv",
-            "sample_optitrack_fixed_orientaion_processed.csv",
         ],
     )
     freehand_optitrack = _pick_existing(
