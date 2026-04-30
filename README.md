@@ -4,6 +4,20 @@ End-to-end preprocessing pipeline for converting raw Arduino and OptiTrack trial
 logs into synchronized, downsampled, globally scaled HDF5 datasets for model
 development.
 
+## Citation
+
+If you use this repository, please cite the accompanying thesis:
+
+```bibtex
+@phdthesis{visnevskis2026spa,
+  author = {Visnevskis, Krisjanis},
+  title = {Data-Driven Bending Angle Estimation for Soft Pneumatic Actuators: Dataset, Methods, and Comparative Evaluation},
+  school = {University of Aberdeen},
+  year = {2026},
+  note = {Companion repository: SPA-data-pre-processing. Dataset DOI: 10.5281/zenodo.18697336}
+}
+```
+
 ## Raw Data Access (Zenodo)
 
 Raw trial data is not tracked in git. Download the dataset ZIP from Zenodo:
@@ -42,13 +56,12 @@ python -m pip install --upgrade pip
 python -m pip install -e .[dev]
 ```
 
-Optional dependencies:
+Optional GUI dependencies:
 
-- `tables` for HDF5 export/read via `pandas.HDFStore`
 - `matplotlib` for GUI inspectors
 
 ```powershell
-python -m pip install tables matplotlib
+python -m pip install -e .[gui]
 ```
 
 ### 2) Download and extract raw data
@@ -118,5 +131,4 @@ Run test suite:
 
 ## License
 
-This repository is licensed under Creative Commons Attribution 4.0
-International (CC BY 4.0). See `LICENSE`.
+This repository is licensed under the MIT License. See `LICENSE`.

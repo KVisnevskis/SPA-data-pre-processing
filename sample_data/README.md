@@ -1,7 +1,8 @@
 ## Sample Data
 
-This folder contains both raw and staged sample files for quick local
-validation of the preprocessing pipeline.
+This folder contains compact fixtures for quick local validation of the
+preprocessing pipeline. These are intentionally small excerpts; the full raw
+dataset is distributed through Zenodo and is not tracked in git.
 
 Raw sample inputs:
 
@@ -10,14 +11,10 @@ Raw sample inputs:
 - `sample_optitrack_fixed_orientation.csv`
 - `sample_optitrack_freehand_manipulation.csv`
 
-Processed stage folders:
+Processed fixture folders used by tests:
 
-- `processed_arduino/`
-- `processed_optitrack/`
 - `processed_synced/`
 - `processed_downsample/`
-- `processed_scaled/`
-- `processed_calibration/`
 
-These files are intended for script and test validation. The full raw dataset
-used by the main manifest is in `data/`.
+Generated calibration, intermediate, scaled, and full-run artifacts should be
+recreated locally from the Zenodo dataset when needed.

@@ -10,3 +10,9 @@ __pycache__/
 *.log
 *.egg-info
 *.png
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+build/
+dist/

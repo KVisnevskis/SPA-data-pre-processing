@@ -25,7 +25,7 @@ class PressureCalibration:
     v_min_ratio: float = 0.10
     v_max_ratio: float = 0.90
     p_max_pa: float = 206_000.0  # 206 kPa
-    #pressure currently exported as ADC counts; conversion to Pa deferred (see Issue #1)
+    # Pressure is exported in Pa when calibration JSON is supplied; ADC is retained.
 
 
 def _pressure_calibration_from_payload(payload: dict[str, object]) -> PressureCalibration:

@@ -102,9 +102,11 @@ def test_synchronize_fixed_orientation_auto_vs_none_on_sample_data():
         return_info=True,
     )
 
-    # For this fixed sample, direct phi correlation lands on an unrealistic periodic peak.
-    assert abs(info_none["sample_shift_arduino"]) > 30_000
-    assert abs(info_auto["sample_shift_arduino"]) < 5_000
+    # The compact fixture preserves the case where the auto transform improves
+    # the synchronization objective without requiring a full-length trial file.
+    assert info_auto["phi_transform_used"] in {"invert", "abs"}
+    assert info_auto["max_cross_correlation"] >= info_none["max_cross_correlation"]
+    assert abs(info_auto["sample_shift_arduino"]) < abs(info_none["sample_shift_arduino"])
 
 
 def test_virtual_accelerometer_shape_and_finite():
